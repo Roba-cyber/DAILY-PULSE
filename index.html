@@ -159,12 +159,12 @@ header{background:linear-gradient(135deg,#1a0a3c 0%,#2d1b69 50%,#0d4a45 100%);co
 .attog{display:flex;align-items:center;justify-content:center;gap:8px}
 .abtn{width:38px;height:38px;border-radius:9px;border:2px solid transparent;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;font-weight:800;transition:all .15s;font-family:'IBM Plex Mono',monospace}
 .abtn:hover{transform:scale(1.08)}
-.nbtn{background:var(--tl);border-color:#5eead4;color:var(--teal)}
-.nbtn.on{background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;border-color:var(--teal);box-shadow:0 2px 8px rgba(13,148,136,.3)}
-.sbtn{background:var(--rl);border-color:#fca5a5;color:var(--red)}
-.sbtn.on{background:linear-gradient(135deg,var(--red),#c53030);color:#fff;border-color:var(--red);box-shadow:0 2px 8px rgba(229,62,62,.3)}
+.pbtn2{background:var(--tl);border-color:#5eead4;color:var(--teal)}
+.pbtn2.on{background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;border-color:var(--teal);box-shadow:0 2px 8px rgba(13,148,136,.3)}
+.abtn2{background:var(--rl);border-color:#fca5a5;color:var(--red)}
+.abtn2.on{background:linear-gradient(135deg,var(--red),#c53030);color:#fff;border-color:var(--red);box-shadow:0 2px 8px rgba(229,62,62,.3)}
 .asts{font-size:12px;font-weight:800;min-width:24px;text-align:center;font-family:'IBM Plex Mono',monospace}
-.asts.N{color:var(--teal)}.asts.S{color:var(--red)}.asts.none{color:var(--inkl)}
+.asts.P{color:var(--teal)}.asts.A{color:var(--red)}.asts.none{color:var(--inkl)}
 .delbtn{background:var(--rl);color:var(--red);border:1px solid #fca5a5;width:32px;height:32px;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px}
 .delbtn:hover{background:#fee2e2}
 
@@ -236,6 +236,27 @@ header{background:linear-gradient(135deg,#1a0a3c 0%,#2d1b69 50%,#0d4a45 100%);co
 .empty-st{text-align:center;padding:40px 18px;color:var(--inkl)}
 .eico{font-size:40px;margin-bottom:8px}
 
+
+/* LOGIN SCREEN */
+#loginScreen{position:fixed;inset:0;background:linear-gradient(135deg,#1a0a3c 0%,#0d2060 50%,#0a3d3a 100%);z-index:900;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:24px}
+#loginScreen.gone{display:none}
+.login-box{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:36px 32px;width:100%;max-width:380px;display:flex;flex-direction:column;align-items:center;gap:18px}
+.login-logo{font-size:52px;animation:pulse 2s infinite}
+.login-title{font-size:24px;font-weight:800;color:#fff;letter-spacing:-.3px;text-align:center}
+.login-sub{font-size:13px;color:#a78bfa;font-family:'IBM Plex Mono',monospace;text-align:center;line-height:1.6}
+.login-input{width:100%;padding:14px 18px;border:2px solid rgba(255,255,255,.2);border-radius:12px;background:rgba(255,255,255,.08);color:#fff;font-size:16px;font-family:'Inter',sans-serif;outline:none;transition:border .2s;text-align:center;letter-spacing:.5px}
+.login-input::placeholder{color:rgba(255,255,255,.4)}
+.login-input:focus{border-color:var(--primary);background:rgba(255,255,255,.12)}
+.login-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--primary),var(--teal));border:none;border-radius:12px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity .2s;letter-spacing:.3px}
+.login-btn:hover{opacity:.9}
+.login-btn:active{transform:scale(.98)}
+.login-error{color:#fca5a5;font-size:13px;font-weight:600;text-align:center;display:none}
+.login-users{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:4px}
+.login-chip{padding:6px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:20px;color:#c4b5fd;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.login-chip:hover{background:rgba(108,63,197,.4);border-color:var(--primary)}
+.user-badge{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:5px 12px;font-size:12px;color:#c4b5fd;cursor:pointer}
+.user-badge:hover{background:rgba(255,255,255,.15)}
+
 /* PRINT */
 @media print{header,.tabs,.qmark,.sbar,.subj-bar,.reg-acts,.moverlay,.toast,.delbtn,.abtn,.btn,#syncBanner,#loadScreen{display:none!important}.wrap{padding:0}.card{box-shadow:none;border:1px solid #ccc}body{background:#fff}@page{margin:1.5cm}}
 
@@ -252,6 +273,45 @@ header{background:linear-gradient(135deg,#1a0a3c 0%,#2d1b69 50%,#0d4a45 100%);co
   <div class="load-bar"><div class="load-fill"></div></div>
 </div>
 
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">📋</div>
+    <div class="login-title">Daily Pulse</div>
+    <div class="login-sub">Elwak DEB Junior School · Mandera</div>
+    <div style="width:100%;display:flex;flex-direction:column;gap:10px;">
+      <input type="text" class="login-input" id="loginUsername" placeholder="Username" autocomplete="off" onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()">
+      <div style="position:relative;width:100%">
+        <input type="password" class="login-input" id="loginPassword" placeholder="Password" autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()" style="padding-right:48px">
+        <button onclick="togglePwd()" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:18px" id="pwdEye">👁</button>
+      </div>
+    </div>
+    <div class="login-error" id="loginError">⚠️ Incorrect username or password.</div>
+    <button class="login-btn" onclick="doLogin()">Sign In →</button>
+    <div style="font-size:11px;color:rgba(255,255,255,.35);text-align:center;line-height:1.6">Use your assigned username and temporary password.<br>Contact <b style="color:#a78bfa">Taro</b> if you forgot your credentials.</div>
+  </div>
+</div>
+
+<!-- CHANGE PASSWORD MODAL -->
+<div class="moverlay" id="changePwdModal">
+  <div class="modal">
+    <div class="mh"><div class="mt">🔑 Change Password</div><button class="mc" onclick="closeModal('changePwdModal')">×</button></div>
+    <div class="mb">
+      <div style="background:var(--al);border-left:3px solid var(--amber);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#92400e">
+        You are using a temporary password. Please change it now.
+      </div>
+      <div class="fg"><label class="fl">New Password</label><input type="password" class="fi" id="newPwd1" placeholder="Enter new password (min 6 characters)"></div>
+      <div class="fg"><label class="fl">Confirm New Password</label><input type="password" class="fi" id="newPwd2" placeholder="Repeat new password"></div>
+      <div style="font-size:12px;color:var(--red);display:none;margin-top:4px" id="pwdError"></div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-o" onclick="closeModal('changePwdModal')">Skip for now</button>
+      <button class="btn btn-p" onclick="changePassword()">Save Password</button>
+    </div>
+  </div>
+</div>
+
 <div id="syncBanner">⚡ Syncing to Supabase…</div>
 
 <header>
@@ -263,6 +323,10 @@ header{background:linear-gradient(135deg,#1a0a3c 0%,#2d1b69 50%,#0d4a45 100%);co
     </div>
   </div>
   <div class="hr2">
+    <div class="user-badge" id="userBadge" onclick="logout()" title="Tap to logout">
+      <span id="userBadgeName">—</span>
+      <span style="font-size:10px;color:rgba(255,255,255,.4)">✕</span>
+    </div>
     <div class="clock-badge" id="clockEl">--:--:-- --</div>
     <div class="sync-badge"><span id="onlineDot"></span><span id="syncLabel">Connecting…</span></div>
     <div class="cs-wrap">📚&nbsp;<select id="classSelect" onchange="onClassChange()"></select></div>
@@ -315,19 +379,19 @@ header{background:linear-gradient(135deg,#1a0a3c 0%,#2d1b69 50%,#0d4a45 100%);co
         </div>
         <div class="qmark">
           <span class="qlbl">Mark all:</span>
-          <button class="btn btn-t btn-sm" onclick="markAll('N')">✓ All Present (N)</button>
-          <button class="btn btn-d btn-sm" onclick="markAll('S')">✗ All Absent (S)</button>
+          <button class="btn btn-t btn-sm" onclick="markAll('P')">✓ All Present (P)</button>
+          <button class="btn btn-d btn-sm" onclick="markAll('A')">✗ All Absent (A)</button>
           <button class="btn btn-o btn-sm" onclick="markAll('')">↺ Clear</button>
         </div>
         <div style="overflow-x:auto">
           <table class="tbl">
-            <thead><tr><th>#</th><th>Student Name</th><th>Parent Phone</th><th style="text-align:center">N / S</th><th style="text-align:center">Del</th></tr></thead>
+            <thead><tr><th>#</th><th>Student Name</th><th>Parent Phone</th><th style="text-align:center">P / A</th><th style="text-align:center">Del</th></tr></thead>
             <tbody id="regBody"></tbody>
           </table>
         </div>
         <div class="sstrip">
-          <div class="sbox"><div class="sv t" id="stP">0</div><div class="slb">Present (N)</div></div>
-          <div class="sbox"><div class="sv r" id="stA">0</div><div class="slb">Absent (S)</div></div>
+          <div class="sbox"><div class="sv t" id="stP">0</div><div class="slb">Present (P)</div></div>
+          <div class="sbox"><div class="sv r" id="stA">0</div><div class="slb">Absent (A)</div></div>
           <div class="sbox"><div class="sv p" id="stT">0</div><div class="slb">Enrolled</div></div>
           <div class="sbox"><div class="sv a" id="stPct">—</div><div class="slb">Rate</div></div>
         </div>
@@ -370,7 +434,7 @@ header{background:linear-gradient(135deg,#1a0a3c 0%,#2d1b69 50%,#0d4a45 100%);co
         </div>
       </div>
       <div style="overflow-x:auto">
-        <table class="tbl"><thead><tr><th>#</th><th>Student Name</th><th>Present (N)</th><th>Absent (S)</th><th>Total Days</th><th>Rate</th></tr></thead><tbody id="sumBody"></tbody></table>
+        <table class="tbl"><thead><tr><th>#</th><th>Student Name</th><th>Present (P)</th><th>Absent (A)</th><th>Total Days</th><th>Rate</th></tr></thead><tbody id="sumBody"></tbody></table>
       </div>
     </div>
   </div>
@@ -410,6 +474,15 @@ header{background:linear-gradient(135deg,#1a0a3c 0%,#2d1b69 50%,#0d4a45 100%);co
           <div class="fn" style="margin-top:7px">"General" is always kept as default.</div>
         </div>
       </div>
+      <!-- Admin: Reset teacher passwords -->
+      <div class="card" id="adminPwdCard">
+        <div class="ch dark"><div class="ct">🔑 Reset Teacher Passwords</div></div>
+        <div class="cbody">
+          <div class="fn" style="margin-bottom:12px">As admin, you can reset any teacher's password back to their temporary default. The teacher will be prompted to change it again on next login.</div>
+          <div id="resetPwdList" style="display:flex;flex-direction:column;gap:7px;"></div>
+        </div>
+      </div>
+
       <div class="card">
         <div class="ch dark"><div class="ct">🗄️ Database & Backup</div></div>
         <div class="cbody">
@@ -497,7 +570,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 //  ALL STUDENT LISTS
 // ══════════════════════════════════════════════
 const SEED_DATA = {
-'Grade 7A': [
+'Grade 7N': [
   {name:'Mohamed Amin Abdi Abdullah',phone:''},
   {name:'Sudeisi Omar',phone:''},
   {name:'Ikram Ibrahim Adan',phone:''},
@@ -572,7 +645,7 @@ const SEED_DATA = {
   {name:'Sumayah Mohamed Abdullahi',phone:'+254721136363'},
   {name:'Rushdah Mohamednoor Adow',phone:'+254722944231'},
 ],
-'Grade 7B': [
+'Grade 7S': [
   {name:'Abdirahman Kullow',phone:'+254723131410'},
   {name:'Abubakar Abdirahmman',phone:'+254713728323'},
   {name:'Abubakar Adannoor',phone:'+254716792750'},
@@ -638,7 +711,7 @@ const SEED_DATA = {
   {name:'Hanan Ismail Issack',phone:'+254729229164'},
   {name:'Hanifa Adan Issack',phone:'+254727887555'},
 ],
-'Grade 8A': [
+'Grade 8N': [
   {name:'Jabir Ismail Maalim',phone:'+254728327540'},
   {name:'Mohomedamin A Hassan',phone:'+254729277654'},
   {name:'Siyad Husein Moahed',phone:'+254713126320'},
@@ -695,7 +768,7 @@ const SEED_DATA = {
   {name:'Alinoor Mohamed Ibrahim',phone:''},
   {name:'Ramla Abdirizak',phone:'+254758474383'},
 ],
-'Grade 8B': [
+'Grade 8S': [
   {name:'Fartuna Edin Moh\'d',phone:'+254712255556'},
   {name:'Nahra Adow Abdi',phone:'+254722383773'},
   {name:'Mandeq Ibrahim Aliow',phone:'+254727111023'},
@@ -751,7 +824,7 @@ const SEED_DATA = {
   {name:'Ibrahim Issack Eda',phone:'+254721130341'},
   {name:'Siyad Aliyow Mohamed',phone:'+254720005582'},
 ],
-'Grade 9A': [
+'Grade 9N': [
   {name:'Zamzam Hassan Durow',phone:''},
   {name:'Muhsin Hussein',phone:'+254725654431'},
   {name:'Hashim Hassan',phone:'+254722289514'},
@@ -811,7 +884,7 @@ const SEED_DATA = {
   {name:'Hanan Alinasir',phone:'+254720806440'},
   {name:'Ruweida Adan',phone:'+254728160166'},
 ],
-'Grade 9B': [
+'Grade 9S': [
   {name:'Mahadow Mohamed',phone:''},
   {name:'Abdi Adan Malim',phone:''},
   {name:'Abdi Ibrahim Adan',phone:''},
@@ -883,7 +956,7 @@ const SEED_DATA = {
 // ══════════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════════
-let CLASSES = ['Grade 7A','Grade 7B','Grade 8A','Grade 8B','Grade 9A','Grade 9B'];
+let CLASSES = ['Grade 7N','Grade 7S','Grade 8N','Grade 8S','Grade 9N','Grade 9S'];
 let SUBJECTS = ['General','Mathematics','English','Kiswahili','Social Studies','Science','CRE/IRE','Agriculture','Life Skills'];
 let SCHOOL = {name:'Daily Pulse',sub:'Elwak DEB Junior School · Mandera',emoji:'📋'};
 let students = {};
@@ -1076,9 +1149,9 @@ function renderReg(){
         <td><span class="sname">${esc(s.name)}</span><span class="sph">${s.phone?'📱 '+s.phone:'<em style="color:#ccc">No phone</em>'}</span></td>
         <td><span class="mono" style="font-size:12px">${s.phone||'—'}</span></td>
         <td><div class="attog">
-          <button class="abtn nbtn${att==='N'?' on':''}" onclick="markS(${s.id},'N','${esc(s.name)}','${esc(s.phone||'')}')" title="Present">N</button>
+          <button class="abtn pbtn2${att==='P'?' on':''}" onclick="markS(${s.id},'P','${esc(s.name)}','${esc(s.phone||'')}')" title="Present">N</button>
           <span class="asts ${att||'none'}">${att||'—'}</span>
-          <button class="abtn sbtn${att==='S'?' on':''}" onclick="markS(${s.id},'S','${esc(s.name)}','${esc(s.phone||'')}')" title="Absent">S</button>
+          <button class="abtn abtn2${att==='A'?' on':''}" onclick="markS(${s.id},'A','${esc(s.name)}','${esc(s.phone||'')}')" title="Absent">S</button>
         </div></td>
         <td style="text-align:center"><button class="delbtn" onclick="delStudent(${s.id},'${esc(s.name)}')">🗑</button></td>
       </tr>`;
@@ -1099,7 +1172,7 @@ async function markS(sid,status,name,phone){
   else delete attendance[curClass][selDate][curSubj][sid];
   renderReg(); renderCal();
   await saveAttRecord(curClass,selDate,curSubj,sid,newStatus);
-  if(newStatus==='S'){
+  if(newStatus==='A'){
     const ph=(phone||'').replace(/[^\d+]/g,'');
     if(ph) fireSMS(ph,name);
     else openSMS(name,'');
@@ -1121,11 +1194,11 @@ async function markAll(status){
     await sb.from('attendance').upsert(rows,{onConflict:'class,date,subject,student_id'});
   }
   hideSync(); renderReg(); renderCal();
-  toast(status==='N'?'✓ All marked N (Present)':status==='S'?'✗ All marked S (Absent)':'Cleared',status==='N'?'green':status==='S'?'red':'');
+  toast(status==='P'?'✓ All marked Present':status==='A'?'✗ All marked Absent':'Cleared',status==='P'?'green':status==='A'?'red':'');
 }
 
 function updateStats(rec,studs){
-  const p=studs.filter(s=>rec[s.id]==='N').length,a=studs.filter(s=>rec[s.id]==='S').length;
+  const p=studs.filter(s=>rec[s.id]==='P').length,a=studs.filter(s=>rec[s.id]==='A').length;
   const pct=p+a>0?Math.round(p/(p+a)*100):null;
   document.getElementById('stP').textContent=p;
   document.getElementById('stA').textContent=a;
@@ -1199,14 +1272,14 @@ function searchStudent(){
   const ca=attendance[curClass]||{},allDates=Object.keys(ca).sort();
   res.innerHTML=matches.map(s=>{
     let tp=0,ta=0;const absDays=[];
-    allDates.forEach(d=>{SUBJECTS.forEach(subj=>{const r=ca[d]?.[subj]||{};if(r[s.id]==='N')tp++;else if(r[s.id]==='S'){ta++;if(!absDays.includes(d))absDays.push(d);}});});
+    allDates.forEach(d=>{SUBJECTS.forEach(subj=>{const r=ca[d]?.[subj]||{};if(r[s.id]==='P')tp++;else if(r[s.id]==='A'){ta++;if(!absDays.includes(d))absDays.push(d);}});});
     const tot=tp+ta,pct=tot>0?Math.round(tp/tot*100):0,pc=pct>=75?'var(--teal)':pct>=50?'var(--amber)':'var(--red)';
-    const subjRows=SUBJECTS.map(subj=>{let sp=0,sa=0;allDates.forEach(d=>{const r=ca[d]?.[subj]||{};if(r[s.id]==='N')sp++;else if(r[s.id]==='S')sa++;});const st=sp+sa;if(!st)return'';const sp2=st>0?Math.round(sp/st*100):0,c2=sp2>=75?'g':sp2>=50?'a':'r';return`<tr><td>${esc(subj)}</td><td style="color:var(--teal);font-weight:700">${sp}</td><td style="color:var(--red);font-weight:700">${sa}</td><td>${st}</td><td><span class="pchip ${c2}">${sp2}%</span></td></tr>`;}).join('');
-    const absHtml=absDays.length?absDays.map(d=>`<span class="atag">S ${shortDate(d)}</span>`).join(''):'<span style="color:var(--inkl);font-size:13px">No absences 🎉</span>';
+    const subjRows=SUBJECTS.map(subj=>{let sp=0,sa=0;allDates.forEach(d=>{const r=ca[d]?.[subj]||{};if(r[s.id]==='P')sp++;else if(r[s.id]==='A')sa++;});const st=sp+sa;if(!st)return'';const sp2=st>0?Math.round(sp/st*100):0,c2=sp2>=75?'g':sp2>=50?'a':'r';return`<tr><td>${esc(subj)}</td><td style="color:var(--teal);font-weight:700">${sp}</td><td style="color:var(--red);font-weight:700">${sa}</td><td>${st}</td><td><span class="pchip ${c2}">${sp2}%</span></td></tr>`;}).join('');
+    const absHtml=absDays.length?absDays.map(d=>`<span class="atag">A ${shortDate(d)}</span>`).join(''):'<span style="color:var(--inkl);font-size:13px">No absences 🎉</span>';
     return`<div class="rcard"><div class="rch"><div><div class="rcn">${esc(s.name)}</div><div class="rcm">${curClass}${s.phone?' · '+s.phone:''}</div></div><div style="text-align:right"><div style="font-size:28px;font-weight:800;font-family:'IBM Plex Mono',monospace;color:${pc}">${pct}%</div><div style="font-size:10px;color:#a78bfa">Attendance Rate</div></div></div>
-    <div class="rcst"><div class="rcstb"><div class="rcsv" style="color:var(--teal)">${tp}</div><div class="rcsl">Present (N)</div></div><div class="rcstb"><div class="rcsv" style="color:var(--red)">${ta}</div><div class="rcsl">Absent (S)</div></div><div class="rcstb"><div class="rcsv">${tot}</div><div class="rcsl">Recorded</div></div><div class="rcstb"><div class="rcsv" style="color:${pc}">${pct}%</div><div class="rcsl">Rate</div></div></div>
-    ${subjRows?`<div style="padding:12px 16px;border-bottom:1px solid var(--border)"><div class="algt">📚 Subject Breakdown</div><div style="overflow-x:auto"><table class="srtbl"><thead><tr><th>Subject</th><th>N (Present)</th><th>S (Absent)</th><th>Total</th><th>Rate</th></tr></thead><tbody>${subjRows}</tbody></table></div></div>`:''}
-    <div class="alog"><div class="algt">📅 Absent (S) dates:</div>${absHtml}</div></div>`;
+    <div class="rcst"><div class="rcstb"><div class="rcsv" style="color:var(--teal)">${tp}</div><div class="rcsl">Present (P)</div></div><div class="rcstb"><div class="rcsv" style="color:var(--red)">${ta}</div><div class="rcsl">Absent (A)</div></div><div class="rcstb"><div class="rcsv">${tot}</div><div class="rcsl">Recorded</div></div><div class="rcstb"><div class="rcsv" style="color:${pc}">${pct}%</div><div class="rcsl">Rate</div></div></div>
+    ${subjRows?`<div style="padding:12px 16px;border-bottom:1px solid var(--border)"><div class="algt">📚 Subject Breakdown</div><div style="overflow-x:auto"><table class="srtbl"><thead><tr><th>Subject</th><th>Present (P)</th><th>Absent (A)</th><th>Total</th><th>Rate</th></tr></thead><tbody>${subjRows}</tbody></table></div></div>`:''}
+    <div class="alog"><div class="algt">📅 Absent dates:</div>${absHtml}</div></div>`;
   }).join('');
 }
 
@@ -1217,7 +1290,7 @@ function renderSum(){
   const studs=getStudents(),ca=attendance[curClass]||{},allDates=Object.keys(ca).sort();
   document.getElementById('sumMeta').textContent=`${curClass} · ${allDates.length} day(s) recorded`;
   if(!studs.length){document.getElementById('sumBody').innerHTML=`<tr><td colspan="6"><div class="empty-st"><div class="eico">📋</div><p>No students yet.</p></div></td></tr>`;return;}
-  const rows=studs.map(s=>{let p=0,a=0;allDates.forEach(d=>{SUBJECTS.forEach(subj=>{const r=ca[d]?.[subj]||{};if(r[s.id]==='N')p++;else if(r[s.id]==='S')a++;});});const tot=p+a,pct=tot>0?Math.round(p/tot*100):null;return{s,p,a,tot,pct};}).sort((a,b)=>(b.pct??-1)-(a.pct??-1));
+  const rows=studs.map(s=>{let p=0,a=0;allDates.forEach(d=>{SUBJECTS.forEach(subj=>{const r=ca[d]?.[subj]||{};if(r[s.id]==='P')p++;else if(r[s.id]==='A')a++;});});const tot=p+a,pct=tot>0?Math.round(p/tot*100):null;return{s,p,a,tot,pct};}).sort((a,b)=>(b.pct??-1)-(a.pct??-1));
   const allPcts=rows.map(r=>r.pct).filter(v=>v!==null),avg=allPcts.length?Math.round(allPcts.reduce((a,b)=>a+b,0)/allPcts.length):null;
   document.getElementById('donutPct').textContent=avg!==null?avg+'%':'—';
   const CIRC=157.1;
@@ -1234,6 +1307,37 @@ function loadSettings(){
   document.getElementById('setSub').value=SCHOOL.sub||'';
   document.getElementById('setEmoji').value=SCHOOL.emoji||'📋';
   renderClassList(); renderSubjList(); updateDBStatus(true);
+  // Show admin password reset card only to admin
+  const adminCard = document.getElementById('adminPwdCard');
+  if(adminCard) adminCard.style.display = currentUser?.role==='admin' ? '' : 'none';
+  renderResetPwdList();
+}
+
+function renderResetPwdList() {
+  const el = document.getElementById('resetPwdList');
+  if (!el) return;
+  const pwds = getSavedPasswords();
+  el.innerHTML = ALLOWED_USERS.filter(u=>u.role==='teacher').map(u => {
+    const hasCustom = !!pwds[u.username];
+    return `<div class="sli">
+      <div style="flex:1">
+        <div class="sli-name">👤 ${esc(u.name)}</div>
+        <div style="font-size:11px;color:var(--inkl);font-family:'IBM Plex Mono',monospace">${u.username} · ${hasCustom?'<span style="color:var(--teal)">Custom password set</span>':'<span style="color:var(--amber)">Using temporary password</span>'}</div>
+      </div>
+      <button class="sli-del" onclick="resetUserPassword('${u.username}')" style="background:var(--al);color:var(--amber);border-color:#fcd98a">Reset</button>
+    </div>`;
+  }).join('');
+}
+
+function resetUserPassword(username) {
+  const user = ALLOWED_USERS.find(u=>u.username===username);
+  if(!user) return;
+  if(!confirm('Reset '+user.name+'\'s password to temporary default?')) return;
+  const pwds = getSavedPasswords();
+  delete pwds[username];
+  savePasswords(pwds);
+  renderResetPwdList();
+  toast('✓ Password reset for '+user.name,'green');
 }
 async function saveSchool(){
   SCHOOL.name=fv('setName')||'Daily Pulse';
@@ -1259,8 +1363,8 @@ async function clearAll(){ if(!confirm('Delete ALL data? Cannot be undone.'))ret
 // ══════════════════════════════════════════════
 //  EXCEL
 // ══════════════════════════════════════════════
-function exportExcel(){ const studs=getStudents(),rec=getAtt(); const ws=[[SCHOOL.name],[`Class: ${curClass} | Subject: ${curSubj} | Date: ${fmtDate(selDate)}`],[],['#','Name','Phone','N/S']]; studs.forEach((s,i)=>ws.push([i+1,s.name,s.phone||'',rec[s.id]||'—'])); const p=studs.filter(s=>rec[s.id]==='N').length,a=studs.filter(s=>rec[s.id]==='S').length; ws.push([],[`Present(N):${p}`,`Absent(S):${a}`,`Total:${studs.length}`,`Rate:${p+a>0?Math.round(p/(p+a)*100):0}%`]); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(ws),curClass); XLSX.writeFile(wb,`Attendance_${curClass}_${selDate}.xlsx`); toast('📊 Exported','green'); }
-function exportSumExcel(){ const studs=getStudents(),ca=attendance[curClass]||{},allDates=Object.keys(ca).sort(); const ws=[[SCHOOL.name],[`Summary: ${curClass}`],[],['#','Name','Phone','Present(N)','Absent(S)','Total','Rate %']]; studs.forEach((s,i)=>{let p=0,a=0;allDates.forEach(d=>{SUBJECTS.forEach(subj=>{const r=ca[d]?.[subj]||{};if(r[s.id]==='N')p++;else if(r[s.id]==='S')a++;});});const tot=p+a;ws.push([i+1,s.name,s.phone||'',p,a,tot,tot>0?Math.round(p/tot*100)+'%':'—']);}); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(ws),'Summary'); XLSX.writeFile(wb,`Summary_${curClass}.xlsx`); toast('📊 Exported','green'); }
+function exportExcel(){ const studs=getStudents(),rec=getAtt(); const ws=[[SCHOOL.name],[`Class: ${curClass} | Subject: ${curSubj} | Date: ${fmtDate(selDate)}`],[],['#','Name','Phone','P/A']]; studs.forEach((s,i)=>ws.push([i+1,s.name,s.phone||'',rec[s.id]||'—'])); const p=studs.filter(s=>rec[s.id]==='P').length,a=studs.filter(s=>rec[s.id]==='A').length; ws.push([],[`Present(P):${p}`,`Absent(A):${a}`,`Total:${studs.length}`,`Rate:${p+a>0?Math.round(p/(p+a)*100):0}%`]); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(ws),curClass); XLSX.writeFile(wb,`Attendance_${curClass}_${selDate}.xlsx`); toast('📊 Exported','green'); }
+function exportSumExcel(){ const studs=getStudents(),ca=attendance[curClass]||{},allDates=Object.keys(ca).sort(); const ws=[[SCHOOL.name],[`Summary: ${curClass}`],[],['#','Name','Phone','Present(P)','Absent(A)','Total','Rate %']]; studs.forEach((s,i)=>{let p=0,a=0;allDates.forEach(d=>{SUBJECTS.forEach(subj=>{const r=ca[d]?.[subj]||{};if(r[s.id]==='P')p++;else if(r[s.id]==='A')a++;});});const tot=p+a;ws.push([i+1,s.name,s.phone||'',p,a,tot,tot>0?Math.round(p/tot*100)+'%':'—']);}); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(ws),'Summary'); XLSX.writeFile(wb,`Summary_${curClass}.xlsx`); toast('📊 Exported','green'); }
 
 // ══════════════════════════════════════════════
 //  QR
@@ -1277,10 +1381,143 @@ function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function toast(msg,type){ const el=document.getElementById('toast'); el.textContent=msg; el.className='toast show '+(type||''); setTimeout(()=>{el.className='toast';},2800); }
 
+
+// ══════════════════════════════════════════════
+//  ALLOWED USERS — Add/remove teacher names here
+// ══════════════════════════════════════════════
+// User roles: admin=all access, principal=view all, teacher=own class only
+// Passwords are temporary — teachers should change on first login
+const ALLOWED_USERS = [
+  { name: 'Taro',           username: 'taro',        password: 'taro1234',       role: 'admin',     class: null },
+  { name: 'Mr.Ahmed Tullo', username: 'ahmed.tullo', password: 'tullo1234',      role: 'principal', class: null },
+  { name: 'Mr.Abdirahman',  username: 'abdirahman',  password: 'abdi1234',       role: 'teacher',   class: 'Grade 7N' },
+  { name: 'Mr.Taro',        username: 'mr.taro',     password: 'mrtaro1234',     role: 'teacher',   class: 'Grade 7S' },
+  { name: 'Mr.Mose',        username: 'mose',        password: 'mose1234',       role: 'teacher',   class: 'Grade 8N' },
+  { name: 'Mr.Nurkey',      username: 'nurkey',      password: 'nurkey1234',     role: 'teacher',   class: 'Grade 8S' },
+  { name: 'Md.Farhiya',     username: 'farhiya',     password: 'farhiya1234',    role: 'teacher',   class: 'Grade 9N' },
+  { name: 'Mr.Hussein',     username: 'hussein',     password: 'hussein1234',    role: 'teacher',   class: 'Grade 9S' },
+];
+
+let currentUser = null;
+
+const PWD_STORAGE_KEY = 'dp_passwords_v1';
+
+function getSavedPasswords() {
+  try { return JSON.parse(localStorage.getItem(PWD_STORAGE_KEY)) || {}; } catch(e) { return {}; }
+}
+function savePasswords(pwds) { localStorage.setItem(PWD_STORAGE_KEY, JSON.stringify(pwds)); }
+
+function getEffectivePassword(user) {
+  // Check if user has changed their password
+  const saved = getSavedPasswords();
+  return saved[user.username] || user.password;
+}
+
+function togglePwd() {
+  const inp = document.getElementById('loginPassword');
+  const eye = document.getElementById('pwdEye');
+  if (inp.type === 'password') { inp.type = 'text'; eye.textContent = '🙈'; }
+  else { inp.type = 'password'; eye.textContent = '👁'; }
+}
+
+function buildLoginChips() { /* no chips needed for username+password */ }
+
+function doLogin() {
+  const username = document.getElementById('loginUsername').value.trim().toLowerCase();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  if (!username || !password) { errEl.style.display = 'block'; errEl.textContent = '⚠️ Enter both username and password.'; return; }
+  const match = ALLOWED_USERS.find(u => u.username.toLowerCase() === username);
+  if (!match) { errEl.style.display = 'block'; errEl.textContent = '⚠️ Username not found. Contact Taro.'; return; }
+  const effectivePwd = getEffectivePassword(match);
+  if (password !== effectivePwd) { errEl.style.display = 'block'; errEl.textContent = '⚠️ Incorrect password. Contact Taro if forgotten.'; return; }
+  errEl.style.display = 'none';
+  currentUser = match;
+  sessionStorage.setItem('dp_user', JSON.stringify(match));
+  document.getElementById('loginScreen').classList.add('gone');
+  document.getElementById('userBadge').style.display = 'flex';
+  const roleTag = match.role === 'admin' ? '⭐' : match.role === 'principal' ? '🏫' : '👤';
+  document.getElementById('userBadgeName').textContent = roleTag + ' ' + match.name;
+  applyUserRestrictions();
+  toast('Welcome, ' + match.name + '!', 'green');
+  // Prompt to change temporary password
+  const pwds = getSavedPasswords();
+  if (!pwds[match.username]) {
+    setTimeout(() => openModal('changePwdModal'), 800);
+  }
+}
+
+function changePassword() {
+  const p1 = document.getElementById('newPwd1').value;
+  const p2 = document.getElementById('newPwd2').value;
+  const errEl = document.getElementById('pwdError');
+  if (p1.length < 6) { errEl.style.display = 'block'; errEl.textContent = '⚠️ Password must be at least 6 characters.'; return; }
+  if (p1 !== p2) { errEl.style.display = 'block'; errEl.textContent = '⚠️ Passwords do not match.'; return; }
+  const pwds = getSavedPasswords();
+  pwds[currentUser.username] = p1;
+  savePasswords(pwds);
+  closeModal('changePwdModal');
+  document.getElementById('newPwd1').value = '';
+  document.getElementById('newPwd2').value = '';
+  errEl.style.display = 'none';
+  toast('✓ Password changed successfully!', 'green');
+}
+
+function applyUserRestrictions() {
+  if (!currentUser) return;
+  if (currentUser.role === 'teacher' && currentUser.class) {
+    curClass = currentUser.class;
+    const sel = document.getElementById('classSelect');
+    sel.innerHTML = `<option value="${currentUser.class}">${currentUser.class}</option>`;
+    sel.disabled = true;
+    ['newClass','importClass'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.innerHTML = `<option value="${currentUser.class}">${currentUser.class}</option>`; el.disabled = true; }
+    });
+    document.querySelectorAll('.tab')[3].style.display = 'none';
+  } else {
+    document.getElementById('classSelect').disabled = false;
+    document.querySelectorAll('.tab')[3].style.display = '';
+    buildClassSelect();
+  }
+  renderCal(); renderReg();
+}
+
+function logout() {
+  if (!confirm('Log out of Daily Pulse?')) return;
+  currentUser = null;
+  sessionStorage.removeItem('dp_user');
+  document.getElementById('loginScreen').classList.remove('gone');
+  document.getElementById('loginUsername').value = '';
+  document.getElementById('loginPassword').value = '';
+  document.getElementById('userBadgeName').textContent = '—';
+  document.getElementById('classSelect').disabled = false;
+}
+
+function checkSession() {
+  const saved = sessionStorage.getItem('dp_user');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed && ALLOWED_USERS.find(u => u.username === parsed.username)) {
+        currentUser = parsed;
+        document.getElementById('loginScreen').classList.add('gone');
+        const roleTag = parsed.role === 'admin' ? '⭐' : parsed.role === 'principal' ? '🏫' : '👤';
+        document.getElementById('userBadgeName').textContent = roleTag + ' ' + parsed.name;
+        return true;
+      }
+    } catch(e) {}
+  }
+  return false;
+}
+
 // ══════════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════════
 async function init(){
+  // Check if already logged in this session
+  const loggedIn = checkSession();
+  if (loggedIn) applyUserRestrictions();
   const ok = await checkTables();
   if(!ok) return;
   const loaded = await loadAll();

@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Pulse — Elwak DEB Junior School</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mammoth/mammoth.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --primary:#6c3fc5;
+  --primary2:#5530a8;
+  --pl:#f0ebff;
+  --teal:#0d9488;
+  --teal2:#0a7a70;
+  --tl:#e0faf8;
+  --red:#e53e3e;
+  --rl:#fff0f0;
+  --amber:#d97706;
+  --al:#fffbeb;
+  --blue:#2563eb;
+  --bl:#eff6ff;
+  --ink:#1a1a2e;
+  --inkm:#4a4a6a;
+  --inkl:#8888aa;
+  --bg:#f3f0fb;
+  --w:#fff;
+  --border:#e2ddf5;
+  --sh:0 2px 12px rgba(108,63,197,.10);
+  --shl:0 8px 32px rgba(108,63,197,.18);
+  --r:14px;--rs:9px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+
+/* LOADING */
+#loadScreen{position:fixed;inset:0;background:linear-gradient(135deg,#1a0a3c 0%,#0d2060 50%,#0a3d3a 100%);z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:#fff}
+#loadScreen.gone{display:none}
+.load-logo{font-size:52px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.load-title{font-size:26px;font-weight:800;letter-spacing:-.5px}
+.load-school{font-size:13px;color:#a78bfa;font-family:'IBM Plex Mono',monospace}
+.load-bar{width:220px;height:4px;background:rgba(255,255,255,.15);border-radius:4px;overflow:hidden;margin-top:10px}
+.load-fill{height:100%;background:linear-gradient(90deg,#6c3fc5,#0d9488);border-radius:4px;animation:lf 1.8s ease-in-out infinite}
+@keyframes lf{0%{width:0%}60%{width:80%}100%{width:100%}}
+
+/* SYNC */
+#syncBanner{display:none;position:fixed;top:66px;left:0;right:0;z-index:40;background:var(--amber);color:#fff;font-size:12px;font-weight:700;text-align:center;padding:6px}
+#syncBanner.show{display:block}
+
+/* HEADER */
+header{background:linear-gradient(135deg,#1a0a3c 0%,#2d1b69 50%,#0d4a45 100%);color:#fff;padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;box-shadow:0 4px 20px rgba(0,0,0,.4);position:sticky;top:0;z-index:50;min-height:66px}
+.hl{display:flex;align-items:center;gap:13px;padding:10px 0}
+.logo{width:46px;height:46px;background:linear-gradient(135deg,var(--primary),var(--teal));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;box-shadow:0 2px 8px rgba(108,63,197,.4)}
+.htitle{font-size:18px;font-weight:800;letter-spacing:-.3px;background:linear-gradient(90deg,#c4b5fd,#5eead4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hsub{font-size:11px;color:#a78bfa;font-family:'IBM Plex Mono',monospace;margin-top:2px}
+.hr2{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 0}
+.clock-badge{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:5px 12px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#c4b5fd}
+.sync-badge{display:flex;align-items:center;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:5px 12px;font-size:12px;color:#c4b5fd;gap:6px}
+#onlineDot{width:8px;height:8px;border-radius:50%;background:#34d399;display:inline-block;flex-shrink:0}
+#onlineDot.off{background:var(--red)}
+.cs-wrap{background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:5px 12px;display:flex;align-items:center;gap:6px;font-size:13px;color:#ddd}
+.cs-wrap select{background:transparent;border:none;color:#fff;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;cursor:pointer;outline:none}
+.cs-wrap select option{color:var(--ink);background:#fff}
+
+/* TABS */
+.tabs{background:var(--w);border-bottom:2px solid var(--border);display:flex;padding:0 20px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:14px 18px;font-size:13px;font-weight:600;color:var(--inkl);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;user-select:none;transition:all .2s;margin-bottom:-2px}
+.tab:hover{color:var(--primary)}
+.tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+
+/* LAYOUT */
+.wrap{max-width:1180px;margin:0 auto;padding:22px 16px}
+.grid2{display:grid;grid-template-columns:295px 1fr;gap:20px;align-items:start}
+.grid2x2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+
+/* CARD */
+.card{background:var(--w);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--sh);overflow:hidden}
+.ch{padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.ch.purple{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff}
+.ch.teal{background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff}
+.ch.dark{background:linear-gradient(135deg,#1a0a3c,#2d1b69);color:#fff}
+.ct{font-size:14px;font-weight:700}
+.cm{font-size:11px;color:rgba(255,255,255,.75);font-family:'IBM Plex Mono',monospace;margin-top:2px}
+.cbody{padding:18px}
+
+/* BUTTONS */
+.btn{padding:7px 15px;border-radius:var(--rs);border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;transition:all .15s}
+.btn:active{transform:scale(.97)}
+.btn-p{background:var(--primary);color:#fff}.btn-p:hover{background:var(--primary2)}
+.btn-t{background:var(--teal);color:#fff}.btn-t:hover{background:var(--teal2)}
+.btn-o{background:#fff;color:var(--ink);border:1px solid var(--border)}.btn-o:hover{border-color:var(--primary)}
+.btn-d{background:var(--rl);color:var(--red);border:1px solid #fca5a5}
+.btn-a{background:var(--al);color:var(--amber);border:1px solid #fcd98a}
+.btn-b{background:var(--bl);color:var(--blue);border:1px solid #bfdbfe}
+.btn-sm{padding:5px 11px;font-size:11px}
+.btn-full{width:100%;justify-content:center;margin-top:6px}
+
+/* FORM */
+.fg{margin-bottom:13px}
+.fl{display:block;font-size:11px;font-weight:700;color:var(--inkm);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
+.fi,.fsel,.fta{width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;font-family:'Inter',sans-serif;outline:none;background:var(--bg);color:var(--ink);transition:border .15s}
+.fi:focus,.fsel:focus,.fta:focus{border-color:var(--primary);background:#fff}
+.fsel{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238888aa'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:30px}
+.fn{font-size:12px;color:var(--inkl);margin-top:5px;line-height:1.5}
+
+/* CALENDAR */
+.cal-nav{display:flex;gap:3px}
+.cal-nav button{background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:7px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.cal-nav button:hover{background:rgba(255,255,255,.35)}
+.cal-grid{padding:14px}
+.cal-dh{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:5px}
+.cal-dl{text-align:center;font-size:10px;font-weight:700;color:var(--inkl);padding:3px 0;font-family:'IBM Plex Mono',monospace}
+.cal-cells{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cc{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;position:relative;transition:all .15s;user-select:none}
+.cc:not(.empty):hover{background:var(--pl);color:var(--primary)}
+.cc.sel{background:linear-gradient(135deg,var(--primary),var(--teal))!important;color:#fff!important;font-weight:700}
+.cc.today{border:2px solid var(--primary);color:var(--primary);font-weight:700}
+.cc.wknd{color:#ccc}
+.cc.hr::after{content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--teal)}
+.cc.sel.hr::after{background:rgba(255,255,255,.8)}
+.cc.empty{cursor:default}
+.sel-bar{margin:0 14px 14px;padding:10px 14px;background:linear-gradient(135deg,var(--pl),var(--tl));border-radius:9px;border-left:4px solid var(--primary);font-size:12px;font-weight:700;color:var(--primary);font-family:'IBM Plex Mono',monospace}
+
+/* SUBJECT CHIPS */
+.subj-bar{padding:10px 14px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.slbl{font-size:11px;font-weight:700;color:var(--inkm);text-transform:uppercase;letter-spacing:.5px;margin-right:3px}
+.chip{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--inkm);transition:all .15s;user-select:none}
+.chip:hover{border-color:var(--primary);color:var(--primary)}
+.chip.active{background:linear-gradient(135deg,var(--primary),var(--teal));color:#fff;border-color:transparent}
+
+/* SEARCH */
+.sbar{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;gap:7px;align-items:center}
+.swrap{position:relative;flex:1}
+.sico{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--inkl);pointer-events:none}
+.si{width:100%;padding:8px 12px 8px 34px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;font-family:'Inter',sans-serif;outline:none;background:var(--bg)}
+.si:focus{border-color:var(--primary);background:#fff}
+
+/* QUICK MARK */
+.qmark{padding:9px 14px;border-bottom:1px solid var(--border);display:flex;gap:6px;align-items:center;background:var(--bg);flex-wrap:wrap}
+.qlbl{font-size:11px;color:var(--inkm);font-weight:600;margin-right:3px}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th,.tbl td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+.tbl th{background:var(--bg);font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--inkl);font-family:'IBM Plex Mono',monospace;text-align:left}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:#faf9ff}
+.mono{font-family:'IBM Plex Mono',monospace}
+.snum{font-family:'IBM Plex Mono',monospace;color:var(--inkl);font-size:11px}
+.sname{font-weight:700;display:block}
+.sph{font-size:11px;color:var(--inkl);margin-top:2px;font-family:'IBM Plex Mono',monospace}
+
+/* ATT BUTTONS — N (Nusu=present) and S (Skipped=absent) */
+.attog{display:flex;align-items:center;justify-content:center;gap:8px}
+.abtn{width:38px;height:38px;border-radius:9px;border:2px solid transparent;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;font-weight:800;transition:all .15s;font-family:'IBM Plex Mono',monospace}
+.abtn:hover{transform:scale(1.08)}
+.nbtn{background:var(--tl);border-color:#5eead4;color:var(--teal)}
+.nbtn.on{background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;border-color:var(--teal);box-shadow:0 2px 8px rgba(13,148,136,.3)}
+.sbtn{background:var(--rl);border-color:#fca5a5;color:var(--red)}
+.sbtn.on{background:linear-gradient(135deg,var(--red),#c53030);color:#fff;border-color:var(--red);box-shadow:0 2px 8px rgba(229,62,62,.3)}
+.asts{font-size:12px;font-weight:800;min-width:24px;text-align:center;font-family:'IBM Plex Mono',monospace}
+.asts.N{color:var(--teal)}.asts.S{color:var(--red)}.asts.none{color:var(--inkl)}
+.delbtn{background:var(--rl);color:var(--red);border:1px solid #fca5a5;width:32px;height:32px;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px}
+.delbtn:hover{background:#fee2e2}
+
+/* STATS */
+.sstrip{display:grid;grid-template-columns:repeat(4,1fr);border-top:2px solid var(--border)}
+.sbox{padding:14px 10px;border-right:1px solid var(--border);text-align:center}
+.sbox:last-child{border-right:none}
+.sv{font-size:24px;font-weight:800;font-family:'IBM Plex Mono',monospace}
+.sv.t{color:var(--teal)}.sv.r{color:var(--red)}.sv.p{color:var(--primary)}.sv.a{color:var(--amber)}
+.slb{font-size:10px;color:var(--inkl);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+
+/* DONUT */
+.dwrap{position:relative;width:62px;height:62px;flex-shrink:0}
+.dwrap svg{transform:rotate(-90deg)}
+.dlbl{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.dpct{font-size:13px;font-weight:800;color:#fff;font-family:'IBM Plex Mono',monospace}
+.dsub{font-size:8px;color:rgba(255,255,255,.6);text-transform:uppercase}
+
+/* PCT */
+.pbw{display:inline-block;background:var(--border);border-radius:4px;height:6px;width:72px;overflow:hidden;vertical-align:middle;margin-left:8px}
+.pbf{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--primary),var(--teal))}
+.pbf.r{background:var(--red)}.pbf.a{background:var(--amber)}
+.pchip{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;font-family:'IBM Plex Mono',monospace}
+.pchip.g{background:var(--tl);color:var(--teal)}.pchip.a{background:var(--al);color:var(--amber)}.pchip.r{background:var(--rl);color:var(--red)}
+
+/* REPORT */
+.rcard{border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
+.rch{background:linear-gradient(135deg,#1a0a3c,#2d1b69);color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.rcn{font-size:16px;font-weight:800}
+.rcm{font-size:11px;color:#a78bfa;font-family:'IBM Plex Mono',monospace;margin-top:2px}
+.rcst{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border)}
+.rcstb{padding:12px;text-align:center;border-right:1px solid var(--border)}
+.rcstb:last-child{border-right:none}
+.rcsv{font-size:20px;font-weight:800;font-family:'IBM Plex Mono',monospace}
+.rcsl{font-size:10px;color:var(--inkl);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-top:1px}
+.alog{padding:13px 18px}
+.algt{font-size:11px;font-weight:700;color:var(--inkm);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.atag{display:inline-block;background:var(--rl);color:var(--red);border:1px solid #fca5a5;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;margin:2px;font-family:'IBM Plex Mono',monospace}
+.srtbl{width:100%;border-collapse:collapse}
+.srtbl th,.srtbl td{padding:8px 12px;border-bottom:1px solid var(--border);font-size:12px}
+.srtbl th{background:var(--bg);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--inkl)}
+
+/* SETTINGS LIST */
+.sli{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg);border-radius:9px;border:1px solid var(--border)}
+.sli-name{flex:1;font-size:13px;font-weight:600}
+.sli-del{background:var(--rl);color:var(--red);border:1px solid #fca5a5;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer}
+.sli-del:hover{background:#fee2e2}
+
+/* MODAL */
+.moverlay{display:none;position:fixed;inset:0;background:rgba(26,10,60,.6);z-index:200;align-items:center;justify-content:center;padding:16px}
+.moverlay.open{display:flex}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:500px;box-shadow:var(--shl);overflow:hidden;animation:su .22s ease}
+@keyframes su{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.mh{background:linear-gradient(135deg,#1a0a3c,#2d1b69);color:#fff;padding:15px 20px;display:flex;align-items:center;justify-content:space-between}
+.mt{font-size:14px;font-weight:700}
+.mc{background:none;border:none;color:rgba(255,255,255,.7);font-size:22px;cursor:pointer;line-height:1}
+.mc:hover{color:#fff}
+.mb{padding:20px}
+.mf{padding:13px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:9px;background:var(--bg)}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;right:22px;background:linear-gradient(135deg,#1a0a3c,#2d1b69);color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:var(--shl);transform:translateY(60px);opacity:0;transition:all .3s;z-index:300}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.green{background:linear-gradient(135deg,var(--teal),var(--teal2))}
+.toast.red{background:linear-gradient(135deg,var(--red),#c53030)}
+.toast.amber{background:linear-gradient(135deg,var(--amber),#b45309)}
+
+/* EMPTY */
+.empty-st{text-align:center;padding:40px 18px;color:var(--inkl)}
+.eico{font-size:40px;margin-bottom:8px}
+
+/* PRINT */
+@media print{header,.tabs,.qmark,.sbar,.subj-bar,.reg-acts,.moverlay,.toast,.delbtn,.abtn,.btn,#syncBanner,#loadScreen{display:none!important}.wrap{padding:0}.card{box-shadow:none;border:1px solid #ccc}body{background:#fff}@page{margin:1.5cm}}
+
+/* RESPONSIVE */
+@media(max-width:768px){.grid2{grid-template-columns:1fr}.grid2x2{grid-template-columns:1fr}.sstrip{grid-template-columns:repeat(2,1fr)}.rcst{grid-template-columns:repeat(2,1fr)}header{padding:0 12px}.tabs{padding:0 8px}.tab{padding:12px 10px;font-size:12px}.clock-badge{display:none}}
+</style>
+</head>
+<body>
+
+<div id="loadScreen">
+  <div class="load-logo">📋</div>
+  <div class="load-title">Daily Pulse</div>
+  <div class="load-school">Elwak DEB Junior School · Mandera</div>
+  <div class="load-bar"><div class="load-fill"></div></div>
+</div>
+
+<div id="syncBanner">⚡ Syncing to Supabase…</div>
+
+<header>
+  <div class="hl">
+    <div class="logo">📋</div>
+    <div>
+      <div class="htitle">Daily Pulse</div>
+      <div class="hsub">Elwak DEB Junior School · Mandera</div>
+    </div>
+  </div>
+  <div class="hr2">
+    <div class="clock-badge" id="clockEl">--:--:-- --</div>
+    <div class="sync-badge"><span id="onlineDot"></span><span id="syncLabel">Connecting…</span></div>
+    <div class="cs-wrap">📚&nbsp;<select id="classSelect" onchange="onClassChange()"></select></div>
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('register')">📋 Daily Register</div>
+  <div class="tab" onclick="switchTab('search')">🔍 Student Report</div>
+  <div class="tab" onclick="switchTab('summary')">📊 Class Summary</div>
+  <div class="tab" onclick="switchTab('settings')">⚙️ Settings</div>
+</div>
+
+<!-- REGISTER -->
+<div id="tab-register">
+  <div class="wrap">
+    <div class="grid2">
+      <div class="card">
+        <div class="ch purple">
+          <div><div class="ct" id="calTitle"></div><div class="cm" id="calMeta"></div></div>
+          <div class="cal-nav">
+            <button onclick="changeMonth(-1)">‹</button>
+            <button onclick="goToday()">●</button>
+            <button onclick="changeMonth(1)">›</button>
+          </div>
+        </div>
+        <div class="cal-grid">
+          <div class="cal-dh">
+            <div class="cal-dl">Su</div><div class="cal-dl">Mo</div><div class="cal-dl">Tu</div>
+            <div class="cal-dl">We</div><div class="cal-dl">Th</div><div class="cal-dl">Fr</div><div class="cal-dl">Sa</div>
+          </div>
+          <div class="cal-cells" id="calCells"></div>
+        </div>
+        <div class="sel-bar" id="selBar"></div>
+      </div>
+      <div class="card">
+        <div class="ch teal">
+          <div><div class="ct" id="regTitle">Register</div><div class="cm" id="regMeta"></div></div>
+          <div class="reg-acts" style="display:flex;gap:5px;flex-wrap:wrap">
+            <button class="btn btn-o btn-sm" onclick="openAddModal()">+ Student</button>
+            <button class="btn btn-o btn-sm" onclick="openImportModal()">⤴ Import</button>
+            <button class="btn btn-o btn-sm" onclick="window.print()">🖨 Print</button>
+            <button class="btn btn-o btn-sm" onclick="exportExcel()">📊 Excel</button>
+          </div>
+        </div>
+        <div class="subj-bar" id="subjBar"><span class="slbl">Subject:</span></div>
+        <div class="sbar">
+          <div class="swrap"><span class="sico">🔍</span><input type="text" class="si" id="regSearch" placeholder="Filter by name…" oninput="renderReg()"></div>
+          <button class="btn btn-o btn-sm" onclick="document.getElementById('regSearch').value='';renderReg()">Clear</button>
+        </div>
+        <div class="qmark">
+          <span class="qlbl">Mark all:</span>
+          <button class="btn btn-t btn-sm" onclick="markAll('N')">✓ All Present (N)</button>
+          <button class="btn btn-d btn-sm" onclick="markAll('S')">✗ All Absent (S)</button>
+          <button class="btn btn-o btn-sm" onclick="markAll('')">↺ Clear</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr><th>#</th><th>Student Name</th><th>Parent Phone</th><th style="text-align:center">N / S</th><th style="text-align:center">Del</th></tr></thead>
+            <tbody id="regBody"></tbody>
+          </table>
+        </div>
+        <div class="sstrip">
+          <div class="sbox"><div class="sv t" id="stP">0</div><div class="slb">Present (N)</div></div>
+          <div class="sbox"><div class="sv r" id="stA">0</div><div class="slb">Absent (S)</div></div>
+          <div class="sbox"><div class="sv p" id="stT">0</div><div class="slb">Enrolled</div></div>
+          <div class="sbox"><div class="sv a" id="stPct">—</div><div class="slb">Rate</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SEARCH -->
+<div id="tab-search" style="display:none">
+  <div class="wrap">
+    <div class="card">
+      <div class="ch dark"><div><div class="ct">Student Attendance Report</div><div class="cm">Full N/S history per student</div></div></div>
+      <div class="cbody">
+        <div class="swrap" style="margin-bottom:16px"><span class="sico">🔍</span><input type="text" class="si" id="reportSearch" placeholder="Type student name…" oninput="searchStudent()"></div>
+        <div id="reportResults"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SUMMARY -->
+<div id="tab-summary" style="display:none">
+  <div class="wrap">
+    <div class="card">
+      <div class="ch dark" style="gap:14px">
+        <div><div class="ct">Class Attendance Summary</div><div class="cm" id="sumMeta">All recorded sessions</div></div>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <div class="dwrap">
+            <svg width="62" height="62" viewBox="0 0 62 62">
+              <circle cx="31" cy="31" r="25" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="7"/>
+              <circle id="donutRing" cx="31" cy="31" r="25" fill="none" stroke="#34d399" stroke-width="7" stroke-linecap="round" stroke-dasharray="157.1" stroke-dashoffset="157.1"/>
+            </svg>
+            <div class="dlbl"><div class="dpct" id="donutPct">—</div><div class="dsub">avg</div></div>
+          </div>
+          <div style="display:flex;gap:7px;flex-wrap:wrap">
+            <button class="btn btn-o btn-sm" onclick="exportSumExcel()">📊 Excel</button>
+            <button class="btn btn-o btn-sm" onclick="window.print()">🖨 Print</button>
+          </div>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="tbl"><thead><tr><th>#</th><th>Student Name</th><th>Present (N)</th><th>Absent (S)</th><th>Total Days</th><th>Rate</th></tr></thead><tbody id="sumBody"></tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div id="tab-settings" style="display:none">
+  <div class="wrap">
+    <div class="grid2x2">
+      <div class="card">
+        <div class="ch dark"><div class="ct">🏫 School Information</div></div>
+        <div class="cbody">
+          <div class="fg"><label class="fl">School Name</label><input type="text" class="fi" id="setName"></div>
+          <div class="fg"><label class="fl">Subtitle</label><input type="text" class="fi" id="setSub"></div>
+          <div class="fg"><label class="fl">Logo Emoji</label><input type="text" class="fi" id="setEmoji" maxlength="4" style="max-width:80px"></div>
+          <button class="btn btn-p" onclick="saveSchool()">💾 Save</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch dark"><div class="ct">📚 Manage Classes</div></div>
+        <div class="cbody">
+          <div id="classListUI" style="display:flex;flex-direction:column;gap:7px;margin-bottom:13px"></div>
+          <div style="display:flex;gap:7px">
+            <input type="text" class="fi" id="newClassInput" placeholder="e.g. Grade 10A" style="flex:1">
+            <button class="btn btn-p" onclick="addClass()">+ Add</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch dark"><div class="ct">📖 Manage Subjects</div></div>
+        <div class="cbody">
+          <div id="subjListUI" style="display:flex;flex-direction:column;gap:7px;margin-bottom:13px"></div>
+          <div style="display:flex;gap:7px">
+            <input type="text" class="fi" id="newSubjInput" placeholder="e.g. Geography" style="flex:1">
+            <button class="btn btn-p" onclick="addSubj()">+ Add</button>
+          </div>
+          <div class="fn" style="margin-top:7px">"General" is always kept as default.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch dark"><div class="ct">🗄️ Database & Backup</div></div>
+        <div class="cbody">
+          <div id="dbStatusBox" style="padding:12px;background:var(--bg);border-radius:9px;border:1px solid var(--border);margin-bottom:14px">
+            <div style="font-size:13px;font-weight:700;margin-bottom:5px" id="dbStatusTitle">Checking…</div>
+            <div style="font-size:12px;color:var(--inkm)" id="dbStatusMsg"></div>
+          </div>
+          <div class="fg"><label class="fl">Export Backup</label><button class="btn btn-b btn-full" onclick="exportJSON()">⬇️ Download (.json)</button></div>
+          <div class="fg">
+            <label class="fl">Restore Backup</label>
+            <input type="file" class="fi" id="restoreFile" accept=".json" style="margin-bottom:7px">
+            <button class="btn btn-a btn-full" onclick="restoreJSON()">⬆️ Restore</button>
+          </div>
+          <hr style="border:none;border-top:1px solid var(--border);margin:12px 0">
+          <button class="btn btn-d btn-full" onclick="clearAll()">🗑️ Clear ALL Data</button>
+        </div>
+      </div>
+      <div class="card" style="grid-column:1/-1">
+        <div class="ch dark"><div class="ct">📲 QR Code Sharer</div></div>
+        <div class="cbody">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+            <div>
+              <p style="font-size:13px;color:var(--inkm);line-height:1.7;margin-bottom:14px">Paste your live URL to generate a QR code teachers can scan.</p>
+              <div class="fg"><label class="fl">Your Live URL</label><input type="text" class="fi" id="qrUrl" placeholder="https://daily-pulse.vercel.app" oninput="genQR()"></div>
+            </div>
+            <div id="qrBox" style="display:none;flex-direction:column;align-items:center;gap:12px;padding:16px;background:var(--bg);border-radius:10px;border:1px solid var(--border)">
+              <div id="qrCanvas" style="background:#fff;padding:10px;border-radius:8px;box-shadow:var(--sh)"></div>
+              <div style="text-align:center"><div style="font-size:11px;font-weight:700;color:var(--inkm);margin-bottom:3px" id="qrUrlLabel"></div><div style="font-size:11px;color:var(--inkl)">Scan with any phone camera</div></div>
+              <div style="display:flex;gap:7px;flex-wrap:wrap;justify-content:center">
+                <button class="btn btn-p btn-sm" onclick="dlQR()">⬇️ Download QR</button>
+                <button class="btn btn-o btn-sm" onclick="printQR()">🖨 Print QR</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="moverlay" id="addModal">
+  <div class="modal">
+    <div class="mh"><div class="mt">Add New Student</div><button class="mc" onclick="closeModal('addModal')">×</button></div>
+    <div class="mb">
+      <div class="fg"><label class="fl">Full Name *</label><input type="text" class="fi" id="newName" placeholder="e.g. Amina Hassan Ali"></div>
+      <div class="fg"><label class="fl">Parent Phone</label><input type="text" class="fi" id="newPhone" placeholder="+254 7XX XXX XXX"></div>
+      <div class="fg"><label class="fl">Class</label><select class="fsel" id="newClass"></select></div>
+    </div>
+    <div class="mf"><button class="btn btn-o" onclick="closeModal('addModal')">Cancel</button><button class="btn btn-p" onclick="addStudent()">Add Student</button></div>
+  </div>
+</div>
+<div class="moverlay" id="importModal">
+  <div class="modal">
+    <div class="mh"><div class="mt">Import Students</div><button class="mc" onclick="closeModal('importModal')">×</button></div>
+    <div class="mb">
+      <div class="fg"><label class="fl">Upload .docx or .txt</label><input type="file" class="fi" id="importFile" accept=".docx,.txt"><div class="fn">Format: Name | Phone — one per line</div></div>
+      <div class="fg"><label class="fl">Or paste list here</label><textarea class="fta" id="pasteArea" rows="5" placeholder="Amina Hassan | +254712345678&#10;Mohamed Abdi"></textarea></div>
+      <div class="fg"><label class="fl">Import into class</label><select class="fsel" id="importClass"></select></div>
+    </div>
+    <div class="mf"><button class="btn btn-o" onclick="closeModal('importModal')">Cancel</button><button class="btn btn-p" onclick="importStudents()">Import</button></div>
+  </div>
+</div>
+<div class="moverlay" id="smsModal">
+  <div class="modal">
+    <div class="mh"><div class="mt">📱 Notify Parent</div><button class="mc" onclick="closeModal('smsModal')">×</button></div>
+    <div class="mb">
+      <div class="fg"><label class="fl">Parent Phone</label><input type="text" class="fi" id="smsPhone" placeholder="+254 7XX XXX XXX"></div>
+      <div class="fg"><label class="fl">Message</label><textarea class="fta" id="smsBody" rows="6"></textarea></div>
+    </div>
+    <div class="mf"><button class="btn btn-o" onclick="closeModal('smsModal')">Cancel</button><button class="btn btn-p" onclick="sendSMS()">Open SMS App</button></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  SUPABASE
+// ══════════════════════════════════════════════
+const SUPABASE_URL = 'https://qnfqcscpnloguuacdfdy.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFuZnFjc2NwbmxvZ3V1YWNkZmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1NDA3MzEsImV4cCI6MjA5ODExNjczMX0.1_K97qdZy586cmjbQhNO7rM4zuKlerRu8KcLebe9X8o';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+// ══════════════════════════════════════════════
+//  ALL STUDENT LISTS
+// ══════════════════════════════════════════════
+const SEED_DATA = {
+'Grade 7A': [
+  {name:'Mohamed Amin Abdi Abdullah',phone:''},
+  {name:'Sudeisi Omar',phone:''},
+  {name:'Ikram Ibrahim Adan',phone:''},
+  {name:'Mohamed Awes',phone:''},
+  {name:'Hilal Hassan',phone:''},
+  {name:'Sudeisi Adan Abdinoor',phone:'+254728711920'},
+  {name:'Shuriymi Ibrahim Ali',phone:'+254722289062'},
+  {name:'Muad Hussein Hassan',phone:'+254724094131'},
+  {name:'Mohamedin Hussein Issack',phone:'+254726434329'},
+  {name:'Shureymi Ssack Alio',phone:'+254720967014'},
+  {name:'Abdikarem Mohamed Alio',phone:'+254727079850'},
+  {name:'Yasir Abdimalik Mohamed',phone:'+254726046656'},
+  {name:'Alinasir Ahmed Mohamed',phone:'+254705268674'},
+  {name:'Sudeysi Hussein Adan',phone:'+254727453449'},
+  {name:'Mohamedamin Abdifatah Abdirahman',phone:'+254723933013'},
+  {name:'Hussein Adan Issack',phone:'+254723924506'},
+  {name:'Abdulbari Hussein Edin',phone:'+254724610830'},
+  {name:'Aydurus Mohamud',phone:'+254117424437'},
+  {name:'Abdirizak Ahmed Adan',phone:'+254741435352'},
+  {name:'Hussein Aftin Malim',phone:'+254729343847'},
+  {name:'Ahmed Hussein Sheikh',phone:'+254723821944'},
+  {name:'Salman Abdinasir Adan',phone:'+254722924203'},
+  {name:'Mohmamedamin Ali Mohamed',phone:'+254720020300'},
+  {name:'Arafat Ali Mohamed',phone:'+254718840841'},
+  {name:'Ashaz Kulow Hassan',phone:'+254725641642'},
+  {name:'Yahya Mohmamed Ibrahmim',phone:'+254728656448'},
+  {name:'Hadnan Mohamed Ibrahmim',phone:'+254728556448'},
+  {name:'Ahmed Omar Ahmed',phone:'+254716401565'},
+  {name:'Zakaria Abdikadir Maalim',phone:'+254727153710'},
+  {name:'Abdimanan Aliow Mohmamed',phone:'+254721408961'},
+  {name:'Yahya Adan Gabow',phone:'+254717181689'},
+  {name:'Jamal Ali Ahmed',phone:'+254720309442'},
+  {name:'Abdinasir Abdinoor Ahmmed',phone:'+254711867394'},
+  {name:'Abdimatin Abdullah Salad',phone:'+254746331605'},
+  {name:'Mahow Mohmamed Alio',phone:''},
+  {name:'Ahmed Aweis Guhad',phone:'+254743849424'},
+  {name:'Mohamed Abdi Ali',phone:'+254720564489'},
+  {name:'Bilal Hassan Mohamed',phone:'+254722289514'},
+  {name:'Sumaya Hassan Abdullahi',phone:'+254793518955'},
+  {name:'Janan Abdullahi Salad',phone:'+254746331605'},
+  {name:'Mandeq Mohamed Omar',phone:'+254740143883'},
+  {name:'Idman Ibrahim Edin',phone:'+254721505482'},
+  {name:'Maryam Mohamed',phone:'+254792169081'},
+  {name:'Khadra Robow Ibrein',phone:'+254741541429'},
+  {name:'Munira Abdi',phone:'+254702051799'},
+  {name:'Samira Ibrahim',phone:'+254721837357'},
+  {name:'Hakima Adan',phone:'+254712578461'},
+  {name:'Ifrah Adan Issack',phone:'+254718838670'},
+  {name:'Safia Omar',phone:'+254716401565'},
+  {name:'Zamzam Mustafa',phone:'+254726095244'},
+  {name:'Raliya Othowai',phone:'+254713762385'},
+  {name:'Mahfuda Adow',phone:'+254712173526'},
+  {name:'Sumaya Abdikadir Hassan',phone:'+254725771597'},
+  {name:'Hamida Ali Mohmamed',phone:'+254722657598'},
+  {name:'Sabrina Adow Hassan',phone:'+254724164375'},
+  {name:'Marwa Ismail Maalim',phone:'+254703523814'},
+  {name:'Maida Aliow Mohmamed',phone:'+254790287254'},
+  {name:'Adey Abdi Gole',phone:'+254757192513'},
+  {name:'Hafsa Mohamed Alikher',phone:'+254729360564'},
+  {name:'Riyan Ibrahim',phone:'+254726577726'},
+  {name:'Husni Mohmamed',phone:''},
+  {name:'Hamza Hussein',phone:'+254725467994'},
+  {name:'Ali Mohamed Hassan',phone:'+254702939882'},
+  {name:'Abdihafidh Mahat Ibrein',phone:'+254723890245'},
+  {name:'Abdiweli Ahmed Mohamed',phone:'+254724721812'},
+  {name:'Jamal Abdiwahab Shaikh',phone:'+254727399141'},
+  {name:'Abdimalik Ismail Issack',phone:'+254729229164'},
+  {name:'Fadhil Mohammednoor Abdullahi',phone:'+254722435742'},
+  {name:'Mandeq Ismail Issack',phone:'+254729229164'},
+  {name:'Ruweida Issack Adan',phone:'+254725027713'},
+  {name:'Rayan Abdirashid Maalim',phone:'+254723175267'},
+  {name:'Sumayah Mohamed Abdullahi',phone:'+254721136363'},
+  {name:'Rushdah Mohamednoor Adow',phone:'+254722944231'},
+],
+'Grade 7B': [
+  {name:'Abdirahman Kullow',phone:'+254723131410'},
+  {name:'Abubakar Abdirahmman',phone:'+254713728323'},
+  {name:'Abubakar Adannoor',phone:'+254716792750'},
+  {name:'Abdisamad Mohamed',phone:'+254718711378'},
+  {name:'Abdiqaliq Alinoor',phone:'+254710582515'},
+  {name:'Abdiwadud Bishar',phone:'+254727510576'},
+  {name:'Abdimustaqim Nurow',phone:'+254714013954'},
+  {name:'Abdi Adan',phone:'+254728090976'},
+  {name:'Adow Abdikadir',phone:'+254713316602'},
+  {name:'Abdihakim Ahmed',phone:'+254702753311'},
+  {name:'Abdibasid Mohmamed',phone:'+254702197835'},
+  {name:'Farhan Mohmamed',phone:'+254727004711'},
+  {name:'Farhan Ahmed',phone:'+254717312784'},
+  {name:'Farhan Abdikadir',phone:'+254723934546'},
+  {name:'Fahad Abdirahman',phone:'+254714698061'},
+  {name:'Hamza Mallow',phone:'+254721837357'},
+  {name:'Hanad Mustafa',phone:'+254703430166'},
+  {name:'Hudheifa Hassan',phone:'+254712405503'},
+  {name:'Muad Issack',phone:'+254727410400'},
+  {name:'Muhidin Abdi',phone:'+254710262672'},
+  {name:'Omar Hussein',phone:'+254728127779'},
+  {name:'Shueib Alikheir',phone:'+254728996087'},
+  {name:'Yazid Abdimalik',phone:'+254726046656'},
+  {name:'Mohamed Hussein',phone:'+254722247978'},
+  {name:'Hassan Guracha',phone:'+254713367012'},
+  {name:'Amran Abdikadir',phone:'+254794599015'},
+  {name:'Bilqeisa Hussein',phone:'+254707716673'},
+  {name:'Fatiha Abdirahman',phone:'+254727423650'},
+  {name:'Fowzia Ali',phone:'+254728691617'},
+  {name:'Fardowsa Ahmed',phone:'+254702753311'},
+  {name:'Farhiya Adan',phone:'+254768045662'},
+  {name:'Hodhan Mohamud',phone:'+254722608831'},
+  {name:'Imrana Hussein',phone:'+254720141669'},
+  {name:'Ilhan Adan',phone:'+254726029902'},
+  {name:'Ladhan Mohamed',phone:'+254727839147'},
+  {name:'Mahfudha Abdifatah',phone:'+254723933013'},
+  {name:'Meymuna Ibrahim',phone:'+254706366859'},
+  {name:'Muzdalifa Malow',phone:'+254721837357'},
+  {name:'Miski Hussein',phone:'+254725467994'},
+  {name:'Hafsa Ali',phone:'+254727999031'},
+  {name:'Nasra Adan',phone:'+254712578461'},
+  {name:'Naima Adan',phone:'+254722872061'},
+  {name:'Nasra Mohamed Ali',phone:'+254722233560'},
+  {name:'Naima Allow',phone:'+254722850449'},
+  {name:'Najma Mohamed Ibrahim',phone:'+254724886358'},
+  {name:'Riyan Kassim',phone:'+254723704555'},
+  {name:'Riyan Ibrahim',phone:'+254729933231'},
+  {name:'Sumeiya Mohamed',phone:'+254713293292'},
+  {name:'Saadia Ibrahim',phone:'+254727079850'},
+  {name:'Yusra Mohamed',phone:'+254724886358'},
+  {name:'Zamzam Ali',phone:'+254728691617'},
+  {name:'Yahya Mohamed Rashid',phone:'+254729052018'},
+  {name:'Muzamil Siyad Hassan',phone:'+254710828701'},
+  {name:'Ayub Mohamed Hussein',phone:'+254710188943'},
+  {name:'Iftisam Khalifa Ali',phone:'+254727776652'},
+  {name:'Sitina Ismail Issack',phone:'+254729229164'},
+  {name:'Farhiya Ibrahim Hassan',phone:'+254725435914'},
+  {name:'Riyan Hashim Mohamed',phone:'+254720968097'},
+  {name:'Aisha Mohamed Rashid',phone:'+254729052018'},
+  {name:'Meysuda Abdi Mohamed',phone:'+254720807234'},
+  {name:'Qashia Ahmed Ibrahim',phone:'+254720099875'},
+  {name:'Rilwan Alio Hassan',phone:'+254725123317'},
+  {name:'Hanan Ismail Issack',phone:'+254729229164'},
+  {name:'Hanifa Adan Issack',phone:'+254727887555'},
+],
+'Grade 8A': [
+  {name:'Jabir Ismail Maalim',phone:'+254728327540'},
+  {name:'Mohomedamin A Hassan',phone:'+254729277654'},
+  {name:'Siyad Husein Moahed',phone:'+254713126320'},
+  {name:'Marwan Issack',phone:'+254726823266'},
+  {name:'Hadnan Hussein Edin',phone:'+254729381392'},
+  {name:'Abdimanan I Edin',phone:'+254721505482'},
+  {name:'Bilal Ahmed Ibrahim',phone:'+254702753311'},
+  {name:'Abdikalik O Adan',phone:'+254723436148'},
+  {name:'Hudheifa Mohamed Edin',phone:''},
+  {name:'Daud Hussein Moh\'d',phone:'+254791956533'},
+  {name:'Adan Hussein Issack',phone:'+254720713348'},
+  {name:'Shureimi Abdikadir Hassan',phone:'+254795375859'},
+  {name:'Dhulkif Moh\'door',phone:'+254722734221'},
+  {name:'Mubarak B Issack',phone:'+254710301328'},
+  {name:'Jaafar Ibrahim',phone:'+254748317420'},
+  {name:'Shureimi Adan Hajji',phone:'+254720025668'},
+  {name:'Saad Ibrahim Kala',phone:'+254724639138'},
+  {name:'Moh\'d A Abdirahman',phone:'+254724766965'},
+  {name:'Hassan Albashir',phone:'+254725656710'},
+  {name:'Moh\'d A Ibrahim',phone:'+254720648647'},
+  {name:'Farhan Abdullah',phone:'+254724766965'},
+  {name:'Feyrus Mukhtar',phone:'+254720810772'},
+  {name:'Najma Moh\'d Hassan',phone:'+254713293292'},
+  {name:'Salwa Ali Mohamed',phone:'+254722657598'},
+  {name:'Muhima Hussein',phone:'+254725923635'},
+  {name:'Yasmina H Moh\'d',phone:'+254720085117'},
+  {name:'Bishara Ibrahim Mohamed',phone:'+254727079850'},
+  {name:'Nahima Moh\'d Omar',phone:'+254728558940'},
+  {name:'Istahil Hussein Moh\'d',phone:'+254729428477'},
+  {name:'Asmahan Billow Issack',phone:'+254721659702'},
+  {name:'Hamida Mohamed Dika',phone:'+254722383773'},
+  {name:'Luley Hussein Moh\'d',phone:'+254723029637'},
+  {name:'Rumana Kullow Issack',phone:'+254726816145'},
+  {name:'Umulkheir Issack Omar',phone:'+254727410400'},
+  {name:'Fardowsa Alikher Abdullah',phone:'+254728996087'},
+  {name:'Marwa Billow Ibrahim',phone:'+254725755310'},
+  {name:'Sitra Hussein Mo\'d',phone:'+254722110968'},
+  {name:'Marwa Ibrahim Adan',phone:'+254727111023'},
+  {name:'Ifrah Moh\'d Adan',phone:'+254797987296'},
+  {name:'Ikram Ibrahim Edin',phone:'+254721505482'},
+  {name:'Idil Ali Moh\'d',phone:'+254713335275'},
+  {name:'Miski Hassan Mustafa',phone:'+254726095244'},
+  {name:'Rawaha Mukhtar Moh\'d',phone:'+254721677610'},
+  {name:'Rahma Dagane A',phone:'+254723339197'},
+  {name:'Ladan Bishar Alikher',phone:'+254748193408'},
+  {name:'Leyla Abdullah Adan',phone:'+254729383477'},
+  {name:'Najma Hassan Ali',phone:'+254720734444'},
+  {name:'Rayan Mohamednoor',phone:'+254722734221'},
+  {name:'Mahfudha Hussein Durrow',phone:'+254727390341'},
+  {name:'Ridhwan Hussein Ibrahim',phone:'+254725467994'},
+  {name:'Maryam Gababa Ibrahim',phone:'+254720807394'},
+  {name:'Ayub Yassin Issack',phone:'+254708996652'},
+  {name:'Husni Hassan Jimale',phone:''},
+  {name:'Alinoor Mohamed Ibrahim',phone:''},
+  {name:'Ramla Abdirizak',phone:'+254758474383'},
+],
+'Grade 8B': [
+  {name:'Fartuna Edin Moh\'d',phone:'+254712255556'},
+  {name:'Nahra Adow Abdi',phone:'+254722383773'},
+  {name:'Mandeq Ibrahim Aliow',phone:'+254727111023'},
+  {name:'Najma Hassan Maalim',phone:'+254726041921'},
+  {name:'Idman Mohamed Adan',phone:'+254797987296'},
+  {name:'Asri Mohamed Abdi',phone:'+254724101997'},
+  {name:'Nimho Billow Ibrahim',phone:'+254725755310'},
+  {name:'Iqra Abdi Dahir',phone:'+254710494313'},
+  {name:'Bilqeysa Abdirizak',phone:'+254726620168'},
+  {name:'Binazir Hassan Abdullahi',phone:'+254725970007'},
+  {name:'Zumara Hassan',phone:'+254726095244'},
+  {name:'Feiza Muqtar Maalim',phone:'+254715581808'},
+  {name:'Asmahan Ibrahim',phone:'+254729711760'},
+  {name:'Rumana Hussein',phone:'+254728127779'},
+  {name:'Sumeya Aliow Ali',phone:'+254711628584'},
+  {name:'Ridhwan Ahmed',phone:'+254724070346'},
+  {name:'Barwaqa Mohamed',phone:'+254799182331'},
+  {name:'Rabiha Robow',phone:'+254722990353'},
+  {name:'Rayan Hussein',phone:'+254700720226'},
+  {name:'Qamar Othowai',phone:'+254713762385'},
+  {name:'Rahila Abdiqadir',phone:'+254727153710'},
+  {name:'Zubeida Adan',phone:'+254710573278'},
+  {name:'Anisa Moh\'d Ali',phone:'+254724122739'},
+  {name:'Zumara Mohamed',phone:'+254727910747'},
+  {name:'Mandeq Abdi Ibrahim',phone:'+254727446385'},
+  {name:'Hani Alinur Hassan',phone:'+254725027756'},
+  {name:'Afnan Alinur Hassan',phone:'+254725559640'},
+  {name:'Warda Issack',phone:'+254728558963'},
+  {name:'Adankher Abdulahi Mohamed',phone:'+254711728361'},
+  {name:'Shueib Mohamed',phone:'+254723024550'},
+  {name:'Abdishukri Adan Bashir',phone:'+254721873964'},
+  {name:'Zakaria Ali Abdi',phone:'+254727999031'},
+  {name:'Issack Aliow',phone:'+254797214613'},
+  {name:'Umar Hassan',phone:'+254726041921'},
+  {name:'Abdikul Abdow Ibrahim',phone:'+254796188874'},
+  {name:'Sudeysi Abdi Ali',phone:'+254724119136'},
+  {name:'Tajudin Ibrahim',phone:'+254729933231'},
+  {name:'Feisal Abdi Mohamed',phone:'+254796006259'},
+  {name:'Mohamednoor Samow Abdi',phone:'+254704464907'},
+  {name:'Hassan Hussein Mohamed',phone:'+254799635424'},
+  {name:'Abdirauf Abdikadir Maalim',phone:'+254727153710'},
+  {name:'Salim Abdinoor',phone:'+254711867394'},
+  {name:'Farhan Issack',phone:'+254723159087'},
+  {name:'Abdirahman Hasssan',phone:'+254720734444'},
+  {name:'Abdimalik Abdibasid',phone:'+254722206719'},
+  {name:'Hajudin Othowai',phone:'+254713762385'},
+  {name:'Suleiman Mohamed',phone:'+254727910747'},
+  {name:'Shakir Alinur',phone:'+254720807294'},
+  {name:'Musa Moh\'d Hussein',phone:'+254724122703'},
+  {name:'Yahya Aliow Maalim',phone:'+254727208992'},
+  {name:'Abdirahim Hussein Ibrahim',phone:'+254727793233'},
+  {name:'Amir Moh\'d Hasssan',phone:'+254704745130'},
+  {name:'Ibrahim Issack Eda',phone:'+254721130341'},
+  {name:'Siyad Aliyow Mohamed',phone:'+254720005582'},
+],
+'Grade 9A': [
+  {name:'Zamzam Hassan Durow',phone:''},
+  {name:'Muhsin Hussein',phone:'+254725654431'},
+  {name:'Hashim Hassan',phone:'+254722289514'},
+  {name:'Shueb Abdi',phone:''},
+  {name:'Abdifatah Mohamed',phone:'+254726095262'},
+  {name:'Abdihakim Adan',phone:''},
+  {name:'Ibrahim Hussein',phone:'+254799635424'},
+  {name:'Abdiwahid Adan',phone:'+254719618756'},
+  {name:'Hussein Ali',phone:''},
+  {name:'Ayub Ibrahim',phone:'+254712919218'},
+  {name:'Farhan Abdi',phone:'+254713855529'},
+  {name:'Shueb Ali',phone:'+254727791146'},
+  {name:'Feisal Abdow',phone:'+254798258074'},
+  {name:'Abdishukri Hassan',phone:'+254721677610'},
+  {name:'Amir Yussuf',phone:'+254721759920'},
+  {name:'Adan Noor Ismail',phone:'+254704851762'},
+  {name:'Abdimanan Abdi',phone:'+254720140669'},
+  {name:'Saad Abdirashid',phone:'+254724057361'},
+  {name:'Seifudin Abdullahi',phone:'+254722999621'},
+  {name:'Mohamed Hussein',phone:'+254724610830'},
+  {name:'Muad Hassan Mohamed',phone:''},
+  {name:'Abdimalik Mohamednoor',phone:'+254720307129'},
+  {name:'Abdimajid Derow',phone:'+254723339652'},
+  {name:'Feisal Abdirahman',phone:'+254714698061'},
+  {name:'Muzamil Adan',phone:'+254726029902'},
+  {name:'Abdikadir Salim',phone:'+254722943904'},
+  {name:'Bishar Shukri',phone:'+254724362947'},
+  {name:'Abdiweli Mohamed',phone:'+254729501304'},
+  {name:'Aminkey Luqman',phone:'+254729788251'},
+  {name:'Abdirahim Husein',phone:''},
+  {name:'Liban Ismail',phone:'+254722998867'},
+  {name:'Ali Abdirahman',phone:''},
+  {name:'Abdiaziz Abdirahman',phone:'+254720806440'},
+  {name:'Abdimajid Ali',phone:'+254704606169'},
+  {name:'Mohamedamin Alinasir',phone:'+254720806440'},
+  {name:'Shueb Abdisalam',phone:'+254723004448'},
+  {name:'Abdirahman Kerow',phone:'+254728230581'},
+  {name:'Nasra Ahmed',phone:''},
+  {name:'Keyfa Abdow',phone:'+254713698185'},
+  {name:'Bilqeysa Mohamed',phone:'+254724101997'},
+  {name:'Shamsa Mohamed',phone:''},
+  {name:'Haliya Abdow',phone:'+254727404740'},
+  {name:'Abdi Hassan Ibrahim',phone:'+254724133583'},
+  {name:'Taslima Abdullah',phone:'+254720012765'},
+  {name:'Tasmia Ibrahim',phone:'+254792169081'},
+  {name:'Mohamed Alow Edin',phone:'+254723409602'},
+  {name:'Muftah Ibrahim',phone:'+254708772007'},
+  {name:'Rilwan Abdulah',phone:'+254720881290'},
+  {name:'Nafisa Abdi',phone:'+254716618088'},
+  {name:'Rihana Abullahi',phone:'+254720012765'},
+  {name:'Anzal Hassan',phone:'+254720242926'},
+  {name:'Sumeya Ibrahim',phone:'+254701765778'},
+  {name:'Barwaqa Ibrahim',phone:'+254728622850'},
+  {name:'Hawalul Mohamed',phone:'+254115171912'},
+  {name:'Makhraj Maalim Ibrahim',phone:'+254726303351'},
+  {name:'Sundus Mohamed',phone:'+254725236121'},
+  {name:'Hanan Alinasir',phone:'+254720806440'},
+  {name:'Ruweida Adan',phone:'+254728160166'},
+],
+'Grade 9B': [
+  {name:'Mahadow Mohamed',phone:''},
+  {name:'Abdi Adan Malim',phone:''},
+  {name:'Abdi Ibrahim Adan',phone:''},
+  {name:'Saadia Adan',phone:''},
+  {name:'Maslah Adan Daud',phone:'+254720025668'},
+  {name:'Abdimanan Ibrahim',phone:''},
+  {name:'Abdilatif Aweis',phone:'+254725081204'},
+  {name:'Mubarak Moh\'d',phone:'+254717395094'},
+  {name:'Issa Mohamud',phone:'+254708583776'},
+  {name:'Abdirahman Adow',phone:'+254712173526'},
+  {name:'Abdiqalik Adan',phone:'+254721873964'},
+  {name:'Abdi Ibrahim',phone:'+254792169081'},
+  {name:'Abdullah Yunis',phone:'+254726058250'},
+  {name:'Abdifatah Hassan',phone:'+254718389402'},
+  {name:'Abdi Adan',phone:'+254725027847'},
+  {name:'Muad Moh\'d Ali',phone:'+254717395094'},
+  {name:'Abdullah Issak',phone:'+254704667672'},
+  {name:'Abdirahman Hussein',phone:'+254726081072'},
+  {name:'Talha Abdinoor',phone:'+254723144868'},
+  {name:'Muad Mahmud Hassan',phone:'+254728114828'},
+  {name:'Yazid Moh\'dnoor',phone:'+254711144344'},
+  {name:'Fahadh M. Alkher',phone:'+254729360564'},
+  {name:'Abdimanan Abdulah',phone:'+254724320289'},
+  {name:'Harith Mohamednoor',phone:'+254711144344'},
+  {name:'Adan Abdi',phone:'+254723004448'},
+  {name:'Hamza Yussuf',phone:'+254729528954'},
+  {name:'Abdirashid Moh\'d',phone:'+254722760349'},
+  {name:'Burhan Ibrahim',phone:'+254712196571'},
+  {name:'Kalid Issak',phone:'+254721525281'},
+  {name:'Abdiaziz Moh\'d',phone:'+254720734444'},
+  {name:'Mohamed Adan',phone:'+254726430688'},
+  {name:'Yusuf Abdi',phone:'+254725798557'},
+  {name:'Assim Kulow',phone:'+254725641642'},
+  {name:'Hudeifa Ali',phone:'+254725656705'},
+  {name:'Moh\'damin Abdulah',phone:'+254768251672'},
+  {name:'Hudeifa A. Dika',phone:'+254746319837'},
+  {name:'Zakaria Hassan',phone:'+254747373698'},
+  {name:'Hamza Abdi Mohamed',phone:'+254748963183'},
+  {name:'Mahir Ali',phone:'+254117383124'},
+  {name:'Shureymi Mohamed Edin',phone:'+254721781065'},
+  {name:'Bahsan Ibrahim',phone:'+254769119982'},
+  {name:'Sumeya Abdi Ibrahim',phone:'+254724292360'},
+  {name:'Shureymi Mohamed Ali',phone:'+254722179577'},
+  {name:'Muad Moh\'dnoor',phone:'+254726619603'},
+  {name:'Ruweida Hussein',phone:'+254799635424'},
+  {name:'Adey Mohamed',phone:'+254727472560'},
+  {name:'Barwaka Ahmed',phone:'+254724043316'},
+  {name:'Aliya Abdirashid',phone:'+254723276404'},
+  {name:'Shamso Abdullahi',phone:'+254711728361'},
+  {name:'Meysuda Mohamed',phone:'+254729808604'},
+  {name:'Suldana Adan',phone:'+254726019871'},
+  {name:'Riyan Mohamed',phone:'+254722233560'},
+  {name:'Aisha Hassan',phone:'+254720734444'},
+  {name:'Sabria Mohamed',phone:'+254701898998'},
+  {name:'Sumeya Mohamed',phone:'+254743967712'},
+  {name:'Hajira Robow',phone:'+254741541429'},
+  {name:'Ikram Ahamed',phone:'+254724043316'},
+  {name:'Hamso Abdisalam',phone:'+254723004448'},
+  {name:'Husna Yussuf',phone:'+254727603111'},
+  {name:'Aniso Abdi',phone:'+254723004448'},
+  {name:'Zeituna Mohamed',phone:'+254722608831'},
+  {name:'Zeiruqa Robow',phone:'+254741541429'},
+  {name:'Abdirauf Mohamed Abdullahi',phone:''},
+  {name:'Abdinasir Abdirahman Mohamed',phone:''},
+  {name:'Maslah Ahmed Ibrahim',phone:'+254720128444'},
+]
+};
+
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+let CLASSES = ['Grade 7A','Grade 7B','Grade 8A','Grade 8B','Grade 9A','Grade 9B'];
+let SUBJECTS = ['General','Mathematics','English','Kiswahili','Social Studies','Science','CRE/IRE','Agriculture','Life Skills'];
+let SCHOOL = {name:'Daily Pulse',sub:'Elwak DEB Junior School · Mandera',emoji:'📋'};
+let students = {};
+let attendance = {};
+let curClass = 'Grade 7A';
+let curSubj = 'General';
+let calY, calM, selDate = todayStr();
+
+// ══════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════
+function todayStr(){ return new Date().toISOString().split('T')[0]; }
+function fmtDate(s){ return new Date(s+'T00:00:00').toLocaleDateString('en-KE',{weekday:'long',year:'numeric',month:'long',day:'numeric'}); }
+function shortDate(s){ return new Date(s+'T00:00:00').toLocaleDateString('en-KE',{day:'2-digit',month:'short',year:'numeric'}); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fv(id){ return (document.getElementById(id)?.value||'').trim(); }
+function getStudents(cls){ return students[cls||curClass]||[]; }
+function getAtt(cls,date,subj){ cls=cls||curClass;date=date||selDate;subj=subj||curSubj; return attendance[cls]?.[date]?.[subj]||{}; }
+
+// ══════════════════════════════════════════════
+//  CLOCK
+// ══════════════════════════════════════════════
+function updateClock(){
+  const n=new Date(),h=n.getHours();
+  document.getElementById('clockEl').textContent=`${String(h%12||12).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}:${String(n.getSeconds()).padStart(2,'0')} ${h>=12?'PM':'AM'}`;
+}
+setInterval(updateClock,1000); updateClock();
+
+// ══════════════════════════════════════════════
+//  DB SETUP CHECK
+// ══════════════════════════════════════════════
+async function checkTables(){
+  const {error} = await sb.from('students').select('id').limit(1);
+  if(error && error.code==='42P01'){
+    document.getElementById('loadScreen').querySelector('.load-school').textContent='⚠️ Please run the SQL setup in Supabase first!';
+    setTimeout(()=>{
+      document.getElementById('loadScreen').classList.add('gone');
+      switchTab('settings');
+      document.getElementById('dbStatusTitle').textContent='⚠️ Tables not created yet';
+      document.getElementById('dbStatusMsg').innerHTML='Go to Supabase → SQL Editor and run the setup SQL.';
+    },2500);
+    return false;
+  }
+  return true;
+}
+
+// ══════════════════════════════════════════════
+//  LOAD FROM SUPABASE
+// ══════════════════════════════════════════════
+async function loadAll(){
+  try{
+    const {data:sets} = await sb.from('settings').select('*');
+    if(sets){ sets.forEach(r=>{ if(r.key==='school') SCHOOL={...SCHOOL,...r.value}; if(r.key==='classes'&&r.value?.list) CLASSES=r.value.list; if(r.key==='subjects'&&r.value?.list) SUBJECTS=r.value.list; }); }
+
+    const {data:studs,error:se} = await sb.from('students').select('*').order('id');
+    if(se) throw se;
+    students={};
+    CLASSES.forEach(c=>students[c]=[]);
+    (studs||[]).forEach(s=>{ if(!students[s.class]) students[s.class]=[]; students[s.class].push({id:s.id,name:s.name,phone:s.phone||''}); });
+
+    // Seed any empty classes
+    for(const cls of CLASSES){
+      if((!students[cls]||students[cls].length===0) && SEED_DATA[cls]){
+        await seedClass(cls);
+      }
+    }
+
+    const {data:att,error:ae} = await sb.from('attendance').select('*');
+    if(ae) throw ae;
+    attendance={};
+    (att||[]).forEach(r=>{ if(!attendance[r.class]) attendance[r.class]={}; if(!attendance[r.class][r.date]) attendance[r.class][r.date]={}; if(!attendance[r.class][r.date][r.subject]) attendance[r.class][r.date][r.subject]={}; attendance[r.class][r.date][r.subject][r.student_id]=r.status; });
+
+    setSyncBadge(true); updateDBStatus(true); return true;
+  }catch(e){ console.error(e); setSyncBadge(false); updateDBStatus(false); return false; }
+}
+
+async function seedClass(cls){
+  toast(`Loading ${cls} students…`,'amber');
+  const rows=SEED_DATA[cls].map(s=>({class:cls,name:s.name,phone:s.phone||''}));
+  const {data,error}=await sb.from('students').insert(rows).select();
+  if(!error&&data){ students[cls]=data.map(s=>({id:s.id,name:s.name,phone:s.phone||''})); toast(`✓ ${cls} loaded`,'green'); }
+}
+
+// ══════════════════════════════════════════════
+//  REALTIME
+// ══════════════════════════════════════════════
+function subscribeRealtime(){
+  sb.channel('dp-changes')
+    .on('postgres_changes',{event:'*',schema:'public',table:'attendance'},payload=>{
+      const {eventType:et,new:n,old:o}=payload;
+      if(et==='INSERT'||et==='UPDATE'){
+        if(!attendance[n.class]) attendance[n.class]={};
+        if(!attendance[n.class][n.date]) attendance[n.class][n.date]={};
+        if(!attendance[n.class][n.date][n.subject]) attendance[n.class][n.date][n.subject]={};
+        attendance[n.class][n.date][n.subject][n.student_id]=n.status;
+      } else if(et==='DELETE'){ try{delete attendance[o.class][o.date][o.subject][o.student_id];}catch(e){} }
+      renderReg(); renderCal();
+    })
+    .on('postgres_changes',{event:'*',schema:'public',table:'students'},()=>{ loadAll().then(()=>{renderReg();buildClassSelect();}); })
+    .subscribe();
+}
+
+// ══════════════════════════════════════════════
+//  SAVE ATTENDANCE
+// ══════════════════════════════════════════════
+async function saveAttRecord(cls,date,subj,studentId,status){
+  showSync();
+  try{
+    if(!status){ await sb.from('attendance').delete().eq('class',cls).eq('date',date).eq('subject',subj).eq('student_id',studentId); }
+    else { await sb.from('attendance').upsert({class:cls,date:date,subject:subj,student_id:studentId,status},{onConflict:'class,date,subject,student_id'}); }
+  }catch(e){ console.error(e); toast('Sync error','red'); }
+  hideSync();
+}
+
+// ══════════════════════════════════════════════
+//  SYNC BADGE
+// ══════════════════════════════════════════════
+function setSyncBadge(on){ const dot=document.getElementById('onlineDot'),lbl=document.getElementById('syncLabel'); if(on){dot.classList.remove('off');lbl.textContent='🔥 Supabase Live';}else{dot.classList.add('off');lbl.textContent='Offline';} }
+function updateDBStatus(ok){ document.getElementById('dbStatusTitle').textContent=ok?'🟢 Connected to Supabase':'🔴 Connection failed'; document.getElementById('dbStatusMsg').textContent=ok?'All devices share data in real time.':'Check your internet connection.'; }
+let syncT;
+function showSync(){ document.getElementById('syncBanner').classList.add('show'); }
+function hideSync(){ clearTimeout(syncT); syncT=setTimeout(()=>document.getElementById('syncBanner').classList.remove('show'),600); }
+
+// ══════════════════════════════════════════════
+//  HEADER
+// ══════════════════════════════════════════════
+function applyHeader(){ document.title=SCHOOL.name||'Daily Pulse'; }
+
+// ══════════════════════════════════════════════
+//  CLASS & SUBJECTS
+// ══════════════════════════════════════════════
+function buildClassSelect(){
+  const opts=CLASSES.map(c=>`<option value="${esc(c)}" ${c===curClass?'selected':''}>${esc(c)}</option>`).join('');
+  document.getElementById('classSelect').innerHTML=opts;
+  ['newClass','importClass'].forEach(id=>{ const el=document.getElementById(id); if(el) el.innerHTML=CLASSES.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join(''); });
+}
+function onClassChange(){ curClass=document.getElementById('classSelect').value; renderCal(); renderReg(); }
+function buildSubjChips(){
+  document.getElementById('subjBar').innerHTML='<span class="slbl">Subject:</span>'+SUBJECTS.map(s=>`<span class="chip${s===curSubj?' active':''}" onclick="pickSubj(this,'${esc(s)}')">${esc(s)}</span>`).join('');
+}
+function pickSubj(el,s){ document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active')); el.classList.add('active'); curSubj=s; renderReg(); renderCal(); }
+
+// ══════════════════════════════════════════════
+//  CALENDAR
+// ══════════════════════════════════════════════
+function initCal(){ const t=new Date(); calY=t.getFullYear(); calM=t.getMonth(); renderCal(); }
+function changeMonth(d){ calM+=d; if(calM>11){calM=0;calY++;} if(calM<0){calM=11;calY--;} renderCal(); }
+function goToday(){ const t=new Date(); calY=t.getFullYear(); calM=t.getMonth(); selDate=todayStr(); renderCal(); renderReg(); }
+function pickDate(d){ selDate=d; renderCal(); renderReg(); }
+function renderCal(){
+  const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('calTitle').textContent=`${MONTHS[calM]} ${calY}`;
+  const ca=attendance[curClass]||{};
+  const pfx=`${calY}-${String(calM+1).padStart(2,'0')}`;
+  const sess=Object.keys(ca).filter(d=>d.startsWith(pfx)).length;
+  document.getElementById('calMeta').textContent=`${sess} session${sess!==1?'s':''} recorded`;
+  document.getElementById('selBar').textContent='📅 '+fmtDate(selDate);
+  const fd=new Date(calY,calM,1).getDay(),dim=new Date(calY,calM+1,0).getDate(),today=todayStr();
+  let h='';
+  for(let i=0;i<fd;i++) h+='<div class="cc empty"></div>';
+  for(let d=1;d<=dim;d++){
+    const ds=`${calY}-${String(calM+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dow=new Date(ds+'T00:00:00').getDay();
+    let c='cc';
+    if(ds===today) c+=' today';
+    if(ds===selDate) c+=' sel';
+    if(ca[ds]&&ca[ds][curSubj]&&Object.keys(ca[ds][curSubj]).length) c+=' hr';
+    if((dow===0||dow===6)&&ds!==selDate) c+=' wknd';
+    h+=`<div class="${c}" onclick="pickDate('${ds}')">${d}</div>`;
+  }
+  document.getElementById('calCells').innerHTML=h;
+}
+
+// ══════════════════════════════════════════════
+//  REGISTER
+// ══════════════════════════════════════════════
+function renderReg(){
+  const studs=getStudents(),rec=getAtt();
+  const filter=(document.getElementById('regSearch').value||'').toLowerCase();
+  document.getElementById('regTitle').textContent=`${curClass} · ${curSubj}`;
+  document.getElementById('regMeta').textContent=fmtDate(selDate);
+  const filtered=studs.filter(s=>s.name.toLowerCase().includes(filter));
+  let h='';
+  if(!filtered.length){ h=`<tr><td colspan="5"><div class="empty-st"><div class="eico">🔍</div><p>No students found.</p></div></td></tr>`; }
+  else{
+    filtered.forEach((s,i)=>{
+      const att=rec[s.id]||'';
+      h+=`<tr>
+        <td><span class="snum">${String(i+1).padStart(2,'0')}</span></td>
+        <td><span class="sname">${esc(s.name)}</span><span class="sph">${s.phone?'📱 '+s.phone:'<em style="color:#ccc">No phone</em>'}</span></td>
+        <td><span class="mono" style="font-size:12px">${s.phone||'—'}</span></td>
+        <td><div class="attog">
+          <button class="abtn nbtn${att==='N'?' on':''}" onclick="markS(${s.id},'N','${esc(s.name)}','${esc(s.phone||'')}')" title="Present">N</button>
+          <span class="asts ${att||'none'}">${att||'—'}</span>
+          <button class="abtn sbtn${att==='S'?' on':''}" onclick="markS(${s.id},'S','${esc(s.name)}','${esc(s.phone||'')}')" title="Absent">S</button>
+        </div></td>
+        <td style="text-align:center"><button class="delbtn" onclick="delStudent(${s.id},'${esc(s.name)}')">🗑</button></td>
+      </tr>`;
+    });
+  }
+  document.getElementById('regBody').innerHTML=h;
+  updateStats(rec,studs);
+}
+
+async function markS(sid,status,name,phone){
+  const rec=getAtt();
+  const prev=rec[sid]||'';
+  const newStatus=prev===status?'':status;
+  if(!attendance[curClass]) attendance[curClass]={};
+  if(!attendance[curClass][selDate]) attendance[curClass][selDate]={};
+  if(!attendance[curClass][selDate][curSubj]) attendance[curClass][selDate][curSubj]={};
+  if(newStatus) attendance[curClass][selDate][curSubj][sid]=newStatus;
+  else delete attendance[curClass][selDate][curSubj][sid];
+  renderReg(); renderCal();
+  await saveAttRecord(curClass,selDate,curSubj,sid,newStatus);
+  if(newStatus==='S'){
+    const ph=(phone||'').replace(/[^\d+]/g,'');
+    if(ph) fireSMS(ph,name);
+    else openSMS(name,'');
+  }
+}
+
+async function markAll(status){
+  const studs=getStudents();
+  if(!attendance[curClass]) attendance[curClass]={};
+  if(!attendance[curClass][selDate]) attendance[curClass][selDate]={};
+  if(!attendance[curClass][selDate][curSubj]) attendance[curClass][selDate][curSubj]={};
+  showSync();
+  if(status===''){
+    attendance[curClass][selDate][curSubj]={};
+    await sb.from('attendance').delete().eq('class',curClass).eq('date',selDate).eq('subject',curSubj);
+  } else {
+    studs.forEach(s=>{ attendance[curClass][selDate][curSubj][s.id]=status; });
+    const rows=studs.map(s=>({class:curClass,date:selDate,subject:curSubj,student_id:s.id,status}));
+    await sb.from('attendance').upsert(rows,{onConflict:'class,date,subject,student_id'});
+  }
+  hideSync(); renderReg(); renderCal();
+  toast(status==='N'?'✓ All marked N (Present)':status==='S'?'✗ All marked S (Absent)':'Cleared',status==='N'?'green':status==='S'?'red':'');
+}
+
+function updateStats(rec,studs){
+  const p=studs.filter(s=>rec[s.id]==='N').length,a=studs.filter(s=>rec[s.id]==='S').length;
+  const pct=p+a>0?Math.round(p/(p+a)*100):null;
+  document.getElementById('stP').textContent=p;
+  document.getElementById('stA').textContent=a;
+  document.getElementById('stT').textContent=studs.length;
+  document.getElementById('stPct').textContent=pct!==null?pct+'%':'—';
+}
+
+async function delStudent(sid,name){
+  if(!confirm(`Delete ${name}?`)) return;
+  showSync();
+  await sb.from('students').delete().eq('id',sid);
+  await sb.from('attendance').delete().eq('student_id',sid);
+  if(students[curClass]) students[curClass]=students[curClass].filter(s=>s.id!==sid);
+  hideSync(); renderReg(); renderCal();
+  toast(`✓ ${name} removed`,'green');
+}
+
+// ══════════════════════════════════════════════
+//  ADD / IMPORT
+// ══════════════════════════════════════════════
+function openAddModal(){ document.getElementById('newName').value=''; document.getElementById('newPhone').value=''; buildClassSelect(); document.getElementById('newClass').value=curClass; openModal('addModal'); }
+async function addStudent(){
+  const name=fv('newName'),phone=fv('newPhone'),cls=document.getElementById('newClass').value;
+  if(!name){toast('Enter student name','red');return;}
+  showSync();
+  const {data,error}=await sb.from('students').insert({class:cls,name,phone}).select().single();
+  if(error){toast('Error adding student','red');hideSync();return;}
+  if(!students[cls]) students[cls]=[];
+  students[cls].push({id:data.id,name:data.name,phone:data.phone||''});
+  hideSync(); closeModal('addModal'); renderReg();
+  toast(`✓ ${name} added to ${cls}`,'green');
+}
+function openImportModal(){ document.getElementById('importFile').value=''; document.getElementById('pasteArea').value=''; buildClassSelect(); document.getElementById('importClass').value=curClass; openModal('importModal'); }
+function parseLines(text){ return text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean).map(l=>{ const p=l.split('|').map(x=>x.trim()); return{name:(p[0]||'').replace(/\s*[-,]\s*(m|male|f|female)\s*$/i,'').trim(),phone:p[1]||''}; }).filter(s=>s.name); }
+async function doImport(list,cls){
+  if(!students[cls]) students[cls]=[];
+  const ex=new Set(students[cls].map(s=>s.name.toLowerCase()));
+  const newOnes=list.filter(s=>!ex.has(s.name.toLowerCase()));
+  if(!newOnes.length){toast('No new students found','amber');return;}
+  showSync();
+  const {data,error}=await sb.from('students').insert(newOnes.map(s=>({class:cls,name:s.name,phone:s.phone||''}))).select();
+  if(error){toast('Import error','red');hideSync();return;}
+  (data||[]).forEach(s=>students[cls].push({id:s.id,name:s.name,phone:s.phone||''}));
+  hideSync(); renderReg(); toast(`✓ Imported ${data.length}`,'green');
+}
+async function importStudents(){
+  const file=document.getElementById('importFile').files[0],txt=fv('pasteArea'),cls=document.getElementById('importClass').value;
+  if(txt){await doImport(parseLines(txt),cls);closeModal('importModal');return;}
+  if(!file){toast('Choose file or paste names','red');return;}
+  if(file.name.endsWith('.txt')){const t=await file.text();await doImport(parseLines(t),cls);closeModal('importModal');return;}
+  if(file.name.endsWith('.docx')){try{const ab=await file.arrayBuffer();const r=await mammoth.extractRawText({arrayBuffer:ab});await doImport(parseLines(r.value),cls);closeModal('importModal');}catch(e){toast('Could not read .docx','red');}return;}
+  toast('Unsupported file type','red');
+}
+
+// ══════════════════════════════════════════════
+//  SMS
+// ══════════════════════════════════════════════
+function buildMsg(name){ const now=new Date(),time=now.toLocaleTimeString('en-KE',{hour:'2-digit',minute:'2-digit'}); return `Assalamu Alaykum,\nDear Parent/Guardian,\n\n${name} was marked ABSENT for ${curSubj} on ${fmtDate(selDate)} at ${time}.\n\nPlease follow up urgently.\n\nThank you,\nElwak DEB Junior School`; }
+function fireSMS(ph,name){ window.location.href=`sms:${encodeURIComponent(ph)}?body=${encodeURIComponent(buildMsg(name))}`; toast(`📱 SMS opened for ${name}`,'green'); }
+function openSMS(name,phone){ document.getElementById('smsPhone').value=phone||''; document.getElementById('smsBody').value=buildMsg(name); openModal('smsModal'); }
+function sendSMS(){ const ph=fv('smsPhone').replace(/[^\d+]/g,''),msg=document.getElementById('smsBody').value.trim(); if(!ph){toast('Enter phone number','red');return;} window.location.href=`sms:${encodeURIComponent(ph)}?body=${encodeURIComponent(msg)}`; toast('Opening SMS app…','green'); }
+
+// ══════════════════════════════════════════════
+//  STUDENT REPORT
+// ══════════════════════════════════════════════
+function searchStudent(){
+  const q=fv('reportSearch').toLowerCase(),res=document.getElementById('reportResults');
+  if(!q){res.innerHTML='';return;}
+  const studs=getStudents(),matches=studs.filter(s=>s.name.toLowerCase().includes(q));
+  if(!matches.length){res.innerHTML=`<div class="empty-st"><div class="eico">👤</div><p>No student found for "<b>${esc(q)}</b>" in ${curClass}.</p></div>`;return;}
+  const ca=attendance[curClass]||{},allDates=Object.keys(ca).sort();
+  res.innerHTML=matches.map(s=>{
+    let tp=0,ta=0;const absDays=[];
+    allDates.forEach(d=>{SUBJECTS.forEach(subj=>{const r=ca[d]?.[subj]||{};if(r[s.id]==='N')tp++;else if(r[s.id]==='S'){ta++;if(!absDays.includes(d))absDays.push(d);}});});
+    const tot=tp+ta,pct=tot>0?Math.round(tp/tot*100):0,pc=pct>=75?'var(--teal)':pct>=50?'var(--amber)':'var(--red)';
+    const subjRows=SUBJECTS.map(subj=>{let sp=0,sa=0;allDates.forEach(d=>{const r=ca[d]?.[subj]||{};if(r[s.id]==='N')sp++;else if(r[s.id]==='S')sa++;});const st=sp+sa;if(!st)return'';const sp2=st>0?Math.round(sp/st*100):0,c2=sp2>=75?'g':sp2>=50?'a':'r';return`<tr><td>${esc(subj)}</td><td style="color:var(--teal);font-weight:700">${sp}</td><td style="color:var(--red);font-weight:700">${sa}</td><td>${st}</td><td><span class="pchip ${c2}">${sp2}%</span></td></tr>`;}).join('');
+    const absHtml=absDays.length?absDays.map(d=>`<span class="atag">S ${shortDate(d)}</span>`).join(''):'<span style="color:var(--inkl);font-size:13px">No absences 🎉</span>';
+    return`<div class="rcard"><div class="rch"><div><div class="rcn">${esc(s.name)}</div><div class="rcm">${curClass}${s.phone?' · '+s.phone:''}</div></div><div style="text-align:right"><div style="font-size:28px;font-weight:800;font-family:'IBM Plex Mono',monospace;color:${pc}">${pct}%</div><div style="font-size:10px;color:#a78bfa">Attendance Rate</div></div></div>
+    <div class="rcst"><div class="rcstb"><div class="rcsv" style="color:var(--teal)">${tp}</div><div class="rcsl">Present (N)</div></div><div class="rcstb"><div class="rcsv" style="color:var(--red)">${ta}</div><div class="rcsl">Absent (S)</div></div><div class="rcstb"><div class="rcsv">${tot}</div><div class="rcsl">Recorded</div></div><div class="rcstb"><div class="rcsv" style="color:${pc}">${pct}%</div><div class="rcsl">Rate</div></div></div>
+    ${subjRows?`<div style="padding:12px 16px;border-bottom:1px solid var(--border)"><div class="algt">📚 Subject Breakdown</div><div style="overflow-x:auto"><table class="srtbl"><thead><tr><th>Subject</th><th>N (Present)</th><th>S (Absent)</th><th>Total</th><th>Rate</th></tr></thead><tbody>${subjRows}</tbody></table></div></div>`:''}
+    <div class="alog"><div class="algt">📅 Absent (S) dates:</div>${absHtml}</div></div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
+//  SUMMARY
+// ══════════════════════════════════════════════
+function renderSum(){
+  const studs=getStudents(),ca=attendance[curClass]||{},allDates=Object.keys(ca).sort();
+  document.getElementById('sumMeta').textContent=`${curClass} · ${allDates.length} day(s) recorded`;
+  if(!studs.length){document.getElementById('sumBody').innerHTML=`<tr><td colspan="6"><div class="empty-st"><div class="eico">📋</div><p>No students yet.</p></div></td></tr>`;return;}
+  const rows=studs.map(s=>{let p=0,a=0;allDates.forEach(d=>{SUBJECTS.forEach(subj=>{const r=ca[d]?.[subj]||{};if(r[s.id]==='N')p++;else if(r[s.id]==='S')a++;});});const tot=p+a,pct=tot>0?Math.round(p/tot*100):null;return{s,p,a,tot,pct};}).sort((a,b)=>(b.pct??-1)-(a.pct??-1));
+  const allPcts=rows.map(r=>r.pct).filter(v=>v!==null),avg=allPcts.length?Math.round(allPcts.reduce((a,b)=>a+b,0)/allPcts.length):null;
+  document.getElementById('donutPct').textContent=avg!==null?avg+'%':'—';
+  const CIRC=157.1;
+  document.getElementById('donutRing').setAttribute('stroke-dashoffset',avg!==null?CIRC*(1-avg/100):CIRC);
+  document.getElementById('donutRing').setAttribute('stroke',avg===null?'#666':avg>=75?'#34d399':avg>=50?'#d97706':'#e53e3e');
+  document.getElementById('sumBody').innerHTML=rows.map(({s,p,a,tot,pct},i)=>{const c=pct===null?'':'pchip '+(pct>=75?'g':pct>=50?'a':'r'),bc=pct!==null&&pct<50?'r':pct!==null&&pct<75?'a':'';return`<tr><td><span class="snum">${String(i+1).padStart(2,'0')}</span></td><td><span class="sname">${esc(s.name)}</span><span class="sph">${s.phone?'📱 '+s.phone:''}</span></td><td class="mono" style="color:var(--teal);font-weight:700">${p}</td><td class="mono" style="color:var(--red);font-weight:700">${a}</td><td class="mono">${tot}</td><td><span class="${c}">${pct!==null?pct+'%':'—'}</span><span class="pbw"><span class="pbf ${bc}" style="width:${pct??0}%"></span></span></td></tr>`;}).join('');
+}
+
+// ══════════════════════════════════════════════
+//  SETTINGS
+// ══════════════════════════════════════════════
+function loadSettings(){
+  document.getElementById('setName').value=SCHOOL.name||'';
+  document.getElementById('setSub').value=SCHOOL.sub||'';
+  document.getElementById('setEmoji').value=SCHOOL.emoji||'📋';
+  renderClassList(); renderSubjList(); updateDBStatus(true);
+}
+async function saveSchool(){
+  SCHOOL.name=fv('setName')||'Daily Pulse';
+  SCHOOL.sub=fv('setSub');
+  SCHOOL.emoji=fv('setEmoji')||'📋';
+  await sb.from('settings').upsert({key:'school',value:SCHOOL},{onConflict:'key'});
+  applyHeader(); toast('✓ School info saved','green');
+}
+function renderClassList(){ document.getElementById('classListUI').innerHTML=CLASSES.map((c,i)=>`<div class="sli"><span class="sli-name">📚 ${esc(c)}</span><button class="sli-del" onclick="removeClass(${i})">Remove</button></div>`).join(''); }
+async function addClass(){ const v=fv('newClassInput'); if(!v){toast('Enter class name','red');return;} if(CLASSES.includes(v)){toast('Already exists','amber');return;} CLASSES.push(v); await sb.from('settings').upsert({key:'classes',value:{list:CLASSES}},{onConflict:'key'}); buildClassSelect(); renderClassList(); document.getElementById('newClassInput').value=''; toast(`✓ ${v} added`,'green'); }
+async function removeClass(i){ const cls=CLASSES[i]; if(!confirm(`Remove "${cls}"?`))return; CLASSES.splice(i,1); await sb.from('settings').upsert({key:'classes',value:{list:CLASSES}},{onConflict:'key'}); await sb.from('students').delete().eq('class',cls); await sb.from('attendance').delete().eq('class',cls); if(curClass===cls) curClass=CLASSES[0]||''; buildClassSelect(); renderClassList(); renderReg(); renderCal(); toast(`✓ ${cls} removed`,'green'); }
+function renderSubjList(){ document.getElementById('subjListUI').innerHTML=SUBJECTS.map((s,i)=>`<div class="sli"><span class="sli-name">📖 ${esc(s)}</span>${s==='General'?'<span style="font-size:11px;color:var(--inkl)">default</span>':`<button class="sli-del" onclick="removeSubj(${i})">Remove</button>`}</div>`).join(''); }
+async function addSubj(){ const v=fv('newSubjInput'); if(!v){toast('Enter subject name','red');return;} if(SUBJECTS.includes(v)){toast('Already exists','amber');return;} SUBJECTS.push(v); await sb.from('settings').upsert({key:'subjects',value:{list:SUBJECTS}},{onConflict:'key'}); buildSubjChips(); renderSubjList(); document.getElementById('newSubjInput').value=''; toast(`✓ ${v} added`,'green'); }
+async function removeSubj(i){ const s=SUBJECTS[i]; if(s==='General')return; if(!confirm(`Remove "${s}"?`))return; SUBJECTS.splice(i,1); await sb.from('settings').upsert({key:'subjects',value:{list:SUBJECTS}},{onConflict:'key'}); if(curSubj===s)curSubj='General'; buildSubjChips(); renderSubjList(); toast(`✓ ${s} removed`,'green'); }
+
+// ══════════════════════════════════════════════
+//  BACKUP / RESTORE / CLEAR
+// ══════════════════════════════════════════════
+function exportJSON(){ const blob=new Blob([JSON.stringify({SCHOOL,CLASSES,SUBJECTS,students,attendance},null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`dailypulse_backup_${todayStr()}.json`; a.click(); toast('✓ Backup downloaded','green'); }
+async function restoreJSON(){ const file=document.getElementById('restoreFile').files[0]; if(!file){toast('Choose a .json backup','red');return;} try{ JSON.parse(await file.text()); if(!confirm('Restore? This replaces current data.'))return; toast('Restore complete — reloading…','green'); setTimeout(()=>location.reload(),1500); }catch(e){toast('Invalid backup file','red');} }
+async function clearAll(){ if(!confirm('Delete ALL data? Cannot be undone.'))return; showSync(); await sb.from('attendance').delete().neq('id',0); await sb.from('students').delete().neq('id',0); hideSync(); location.reload(); }
+
+// ══════════════════════════════════════════════
+//  EXCEL
+// ══════════════════════════════════════════════
+function exportExcel(){ const studs=getStudents(),rec=getAtt(); const ws=[[SCHOOL.name],[`Class: ${curClass} | Subject: ${curSubj} | Date: ${fmtDate(selDate)}`],[],['#','Name','Phone','N/S']]; studs.forEach((s,i)=>ws.push([i+1,s.name,s.phone||'',rec[s.id]||'—'])); const p=studs.filter(s=>rec[s.id]==='N').length,a=studs.filter(s=>rec[s.id]==='S').length; ws.push([],[`Present(N):${p}`,`Absent(S):${a}`,`Total:${studs.length}`,`Rate:${p+a>0?Math.round(p/(p+a)*100):0}%`]); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(ws),curClass); XLSX.writeFile(wb,`Attendance_${curClass}_${selDate}.xlsx`); toast('📊 Exported','green'); }
+function exportSumExcel(){ const studs=getStudents(),ca=attendance[curClass]||{},allDates=Object.keys(ca).sort(); const ws=[[SCHOOL.name],[`Summary: ${curClass}`],[],['#','Name','Phone','Present(N)','Absent(S)','Total','Rate %']]; studs.forEach((s,i)=>{let p=0,a=0;allDates.forEach(d=>{SUBJECTS.forEach(subj=>{const r=ca[d]?.[subj]||{};if(r[s.id]==='N')p++;else if(r[s.id]==='S')a++;});});const tot=p+a;ws.push([i+1,s.name,s.phone||'',p,a,tot,tot>0?Math.round(p/tot*100)+'%':'—']);}); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(ws),'Summary'); XLSX.writeFile(wb,`Summary_${curClass}.xlsx`); toast('📊 Exported','green'); }
+
+// ══════════════════════════════════════════════
+//  QR
+// ══════════════════════════════════════════════
+function genQR(){ const url=fv('qrUrl'),box=document.getElementById('qrBox'),canvas=document.getElementById('qrCanvas'); if(!url){box.style.display='none';return;} box.style.display='flex'; document.getElementById('qrUrlLabel').textContent=url; canvas.innerHTML=''; try{new QRCode(canvas,{text:url,width:180,height:180,colorDark:'#1a0a3c',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});}catch(e){} }
+function dlQR(){ const canvas=document.getElementById('qrCanvas'),img=canvas.querySelector('img')||canvas.querySelector('canvas'); if(!img){toast('Generate QR first','red');return;} const a=document.createElement('a'); a.href=img.tagName==='CANVAS'?img.toDataURL('image/png'):img.src; a.download='dailypulse_qr.png'; a.click(); toast('✓ QR downloaded','green'); }
+function printQR(){ const url=fv('qrUrl'),canvas=document.getElementById('qrCanvas'),img=canvas.querySelector('img')||canvas.querySelector('canvas'); if(!img){toast('Generate QR first','red');return;} const src=img.tagName==='CANVAS'?img.toDataURL('image/png'):img.src; const win=window.open('','_blank'); win.document.write(`<!DOCTYPE html><html><head><title>QR</title><style>body{font-family:Inter,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:#fff;gap:14px;padding:20px;text-align:center}h1{font-size:20px;color:#1a0a3c}img{width:200px;height:200px}.url{font-size:11px;color:#999;word-break:break-all;max-width:240px}</style></head><body><div style="font-size:36px">${esc(SCHOOL.emoji)}</div><h1>${esc(SCHOOL.name)}</h1><p style="font-size:13px;color:#555">${esc(SCHOOL.sub)}</p><img src="${src}"/><div class="url">${esc(url)}</div></body></html>`); win.document.close(); setTimeout(()=>win.print(),500); }
+
+// ══════════════════════════════════════════════
+//  TABS / MODALS / TOAST
+// ══════════════════════════════════════════════
+function switchTab(tab){ ['register','search','summary','settings'].forEach(t=>{document.getElementById(`tab-${t}`).style.display=t===tab?'':'none';}); document.querySelectorAll('.tab').forEach((el,i)=>{el.classList.toggle('active',['register','search','summary','settings'][i]===tab);}); if(tab==='summary')renderSum(); if(tab==='settings')loadSettings(); if(tab==='search'){document.getElementById('reportSearch').value='';document.getElementById('reportResults').innerHTML='';} }
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function toast(msg,type){ const el=document.getElementById('toast'); el.textContent=msg; el.className='toast show '+(type||''); setTimeout(()=>{el.className='toast';},2800); }
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+async function init(){
+  const ok = await checkTables();
+  if(!ok) return;
+  const loaded = await loadAll();
+  if(loaded){ applyHeader(); buildClassSelect(); buildSubjChips(); initCal(); renderReg(); subscribeRealtime(); }
+  document.getElementById('loadScreen').classList.add('gone');
+}
+init();
+</script>
+</body>
+</html>

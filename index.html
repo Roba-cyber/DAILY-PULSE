@@ -259,10 +259,14 @@ header{background:linear-gradient(135deg,#1a0a3c 0%,#2d1b69 50%,#0d4a45 100%);co
 
 /* PRINT */
 @media print{
-  header,.tabs,.qmark,.sbar,.subj-bar,.reg-acts,.moverlay,.toast,.delbtn,.abtn,.btn,#syncBanner,#loadScreen,#loginScreen,#tab-search,#tab-summary,#tab-dashboard,#tab-settings{display:none!important}
+  header,.tabs,.qmark,.sbar,.subj-bar,.reg-acts,.moverlay,.toast,.delbtn,.abtn,.btn,
+  #syncBanner,#loadScreen,#loginScreen,
+  #tab-search,#tab-summary,#tab-dashboard,#tab-settings,
+  #tab-register .ch.teal .reg-acts{display:none!important}
   .wrap{padding:0}.card{box-shadow:none;border:1px solid #ccc}body{background:#fff}
   @page{margin:1.5cm}
   #printHeader{display:flex!important}
+  #tab-register{display:block!important}
 }
 #printHeader{
   display:none;
@@ -1071,7 +1075,7 @@ async function seedClass(cls){
 // ══════════════════════════════════════════════
 //  REALTIME
 // ══════════════════════════════════════════════
-function subscribeRealtime(){
+function subscribeRealtime(){ subscribed=true;
   sb.channel('dp-changes')
     .on('postgres_changes',{event:'*',schema:'public',table:'attendance'},payload=>{
       const {eventType:et,new:n,old:o}=payload;
@@ -1318,6 +1322,10 @@ function searchStudent(){
 //  SUMMARY
 // ══════════════════════════════════════════════
 function renderSum(){
+  if(Object.keys(attendance).length===0 && Object.keys(students).length===0){
+    document.getElementById('sumBody').innerHTML='<tr><td colspan="6"><div class="empty-st"><div class="eico">⏳</div><p>Loading data…</p></div></td></tr>';
+    loadAll().then(()=>renderSum()); return;
+  }
   const studs=getStudents(),ca=attendance[curClass]||{},allDates=Object.keys(ca).sort();
   document.getElementById('sumMeta').textContent=`${curClass} · ${allDates.length} day(s) recorded`;
   if(!studs.length){document.getElementById('sumBody').innerHTML=`<tr><td colspan="6"><div class="empty-st"><div class="eico">📋</div><p>No students yet.</p></div></td></tr>`;return;}
@@ -1334,14 +1342,13 @@ function renderSum(){
 //  SETTINGS
 // ══════════════════════════════════════════════
 function loadSettings(){
+  if(!currentUser){ toast('Please log in first','red'); return; }
   document.getElementById('setName').value=SCHOOL.name||'';
   document.getElementById('setSub').value=SCHOOL.sub||'';
   document.getElementById('setEmoji').value=SCHOOL.emoji||'📋';
   renderClassList(); renderSubjList(); updateDBStatus(true);
-  // Show admin password reset card only to admin
   const adminCard = document.getElementById('adminPwdCard');
   if(adminCard) adminCard.style.display = currentUser?.role==='admin' ? '' : 'none';
-  renderResetPwdList();
 }
 
 function renderResetPwdList() {
@@ -1409,7 +1416,9 @@ function printQR(){ const url=fv('qrUrl'),canvas=document.getElementById('qrCanv
 //  DASHBOARD
 // ══════════════════════════════════════════════
 function renderDashboard() {
-  document.getElementById('dashLogo').src = SCHOOL_LOGO;
+  if (!currentUser) { toast('Please log in first','red'); return; }
+  const dl=document.getElementById('dashLogo'); if(dl) dl.src=SCHOOL_LOGO;
+  const pl=document.getElementById('printLogo'); if(pl) pl.src=SCHOOL_LOGO;
   document.getElementById('dashDate').textContent = '📅 ' + fmtDate(todayStr());
 
   const today = todayStr();
@@ -1422,21 +1431,29 @@ function renderDashboard() {
     const ca = attendance[cls] || {};
     let p=0, a=0;
     // Count across all subjects for today
+    // Build absent list (one entry per student per class)
+    const absStudents = new Map();
     SUBJECTS.forEach(subj => {
       const rec = ca[today]?.[subj] || {};
       studs.forEach(s => {
-        if(rec[s.id]==='P') p++;
-        else if(rec[s.id]==='A') {
-          a++;
-          allAbsent.push({name:s.name, cls, phone:s.phone||'—', subj});
+        if(rec[s.id]==='A' && !absStudents.has(s.id)){
+          absStudents.set(s.id, {name:s.name, cls, phone:s.phone||'—', subj});
         }
       });
     });
-    // Use General subject for main count (avoid double counting)
-    const mainRec = ca[today]?.['General'] || {};
-    const mp = studs.filter(s=>mainRec[s.id]==='P').length;
-    const ma = studs.filter(s=>mainRec[s.id]==='A').length;
-    const mm = mp+ma;
+    absStudents.forEach(v => allAbsent.push(v));
+    // Count across all recorded subjects for today, deduplicate by student
+    const presentSet = new Set(), absentSet = new Set();
+    SUBJECTS.forEach(subj => {
+      const rec = ca[today]?.[subj] || {};
+      Object.entries(rec).forEach(([sid, status]) => {
+        if(status==='P') presentSet.add(Number(sid));
+        else if(status==='A') absentSet.add(Number(sid));
+      });
+    });
+    // Students in both P and A — count as P (benefit of doubt)
+    absentSet.forEach(sid => { if(presentSet.has(sid)) absentSet.delete(sid); });
+    const mp = presentSet.size, ma = absentSet.size, mm = mp+ma;
     const mpct = mm>0?Math.round(mp/mm*100):null;
     totalEnrolled += studs.length;
     totalPresent += mp;
@@ -1504,7 +1521,23 @@ function renderDashboard() {
 // ══════════════════════════════════════════════
 //  TABS / MODALS / TOAST
 // ══════════════════════════════════════════════
-function switchTab(tab){ ['register','search','summary','dashboard','settings'].forEach(t=>{document.getElementById(`tab-${t}`).style.display=t===tab?'':'none';}); document.querySelectorAll('.tab').forEach((el,i)=>{el.classList.toggle('active',['register','search','summary','dashboard','settings'][i]===tab);}); if(tab==='summary')renderSum(); if(tab==='settings')loadSettings(); if(tab==='dashboard')renderDashboard(); if(tab==='search'){document.getElementById('reportSearch').value='';document.getElementById('reportResults').innerHTML='';} }
+function switchTab(tab){
+  const TABS = ['register','search','summary','dashboard','settings'];
+  TABS.forEach(t => {
+    const el = document.getElementById('tab-'+t);
+    if(el) el.style.display = t===tab ? '' : 'none';
+  });
+  document.querySelectorAll('.tab').forEach((el,i) => {
+    el.classList.toggle('active', TABS[i]===tab);
+  });
+  if(tab==='summary') renderSum();
+  if(tab==='settings') loadSettings();
+  if(tab==='dashboard') renderDashboard();
+  if(tab==='search'){
+    document.getElementById('reportSearch').value='';
+    document.getElementById('reportResults').innerHTML='';
+  }
+}
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function toast(msg,type){ const el=document.getElementById('toast'); el.textContent=msg; el.className='toast show '+(type||''); setTimeout(()=>{el.className='toast';},2800); }
@@ -1527,6 +1560,7 @@ const ALLOWED_USERS = [
 ];
 
 let currentUser = null;
+let subscribed = false;
 
 // ── SUPABASE AUTH LOGIN ──
 function togglePwd() {
@@ -1558,24 +1592,30 @@ async function doLogin() {
 }
 
 async function onAuthSuccess(user) {
-  // Fetch profile from DB
   const { data: profile, error } = await sb.from('profiles').select('*').eq('id', user.id).single();
   if (error || !profile) {
     await sb.auth.signOut();
-    document.getElementById('loginError').style.display = 'block';
-    document.getElementById('loginError').textContent = '⚠️ Profile not found. Contact Taro.';
-    document.getElementById('loginBtn').textContent = 'Sign In →';
-    document.getElementById('loginBtn').disabled = false;
+    const errEl = document.getElementById('loginError');
+    if(errEl){ errEl.style.display='block'; errEl.textContent='⚠️ Profile not found. Contact Taro.'; }
+    const btn = document.getElementById('loginBtn');
+    if(btn){ btn.textContent='Sign In →'; btn.disabled=false; }
     return;
   }
   currentUser = { ...profile, email: user.id };
   document.getElementById('loginScreen').classList.add('gone');
-  const roleTag = profile.role === 'admin' ? '⭐' : profile.role === 'principal' ? '🏫' : '👤';
-  document.getElementById('userBadgeName').textContent = roleTag + ' ' + profile.name;
-  document.getElementById('loginBtn').textContent = 'Sign In →';
-  document.getElementById('loginBtn').disabled = false;
+  const roleTag = profile.role==='admin'?'⭐':profile.role==='principal'?'🏫':'👤';
+  document.getElementById('userBadgeName').textContent = roleTag+' '+profile.name;
+  const btn = document.getElementById('loginBtn');
+  if(btn){ btn.textContent='Sign In →'; btn.disabled=false; }
+  // Ensure data is loaded before applying restrictions
+  if(Object.keys(students).length === 0){
+    await loadAll();
+    applyHeader(); buildClassSelect(); buildSubjChips(); initCal();
+  }
   applyUserRestrictions();
-  toast('Welcome, ' + profile.name + '!', 'green');
+  renderReg();
+  if(!subscribed) { subscribeRealtime(); subscribed=true; }
+  toast('Welcome, '+profile.name+'!', 'green');
 }
 
 async function changePassword() {
@@ -1595,25 +1635,36 @@ async function changePassword() {
 
 function applyUserRestrictions() {
   if (!currentUser) return;
+  const allTabs = document.querySelectorAll('.tab');
   if (currentUser.role === 'teacher' && currentUser.class) {
+    // Teacher: lock to own class, hide Dashboard & Settings
     curClass = currentUser.class;
     const sel = document.getElementById('classSelect');
-    sel.innerHTML = `<option value="${currentUser.class}">${currentUser.class}</option>`;
+    sel.innerHTML = `<option value="${esc(currentUser.class)}">${esc(currentUser.class)}</option>`;
     sel.disabled = true;
     ['newClass','importClass'].forEach(id => {
       const el = document.getElementById(id);
-      if (el) { el.innerHTML = `<option value="${currentUser.class}">${currentUser.class}</option>`; el.disabled = true; }
+      if (el) {
+        el.innerHTML = `<option value="${esc(currentUser.class)}">${esc(currentUser.class)}</option>`;
+        el.disabled = true;
+      }
     });
-    // Hide Settings and Dashboard tabs for teachers
-    document.querySelectorAll('.tab').forEach(t => {
-      if (t.textContent.includes('Settings') || t.textContent.includes('Dashboard')) t.style.display = 'none';
+    allTabs.forEach(t => {
+      const txt = t.textContent.trim();
+      if (txt.includes('Settings') || txt.includes('Dashboard')) {
+        t.style.display = 'none';
+      } else {
+        t.style.display = '';
+      }
     });
   } else {
+    // Admin / Principal: show ALL tabs, full class access
+    allTabs.forEach(t => { t.style.display = ''; });
     document.getElementById('classSelect').disabled = false;
-    document.querySelectorAll('.tab').forEach(t => t.style.display = '');
     buildClassSelect();
   }
-  renderCal(); renderReg();
+  renderCal();
+  renderReg();
 }
 
 async function logout() {
@@ -1641,16 +1692,23 @@ async function checkSession() {
 //  INIT
 // ══════════════════════════════════════════════
 async function init(){
-  // Set school logo everywhere
   document.getElementById('loginLogo').src = SCHOOL_LOGO;
-  // Check Supabase session
-  const loggedIn = await checkSession();
+  // Load DB first (tables check + data)
   const ok = await checkTables();
   if(!ok) return;
   const loaded = await loadAll();
-  if(loaded){ applyHeader(); buildClassSelect(); buildSubjChips(); initCal(); renderReg(); subscribeRealtime(); }
+  if(loaded){ applyHeader(); buildClassSelect(); buildSubjChips(); initCal(); }
+  // Then restore session
+  const loggedIn = await checkSession();
   document.getElementById('loadScreen').classList.add('gone');
-  if (!loggedIn) document.getElementById('loginScreen').classList.remove('gone');
+  if(loggedIn){
+    // data is loaded, now render with restrictions
+    applyUserRestrictions();
+    renderReg();
+    subscribeRealtime();
+  } else {
+    document.getElementById('loginScreen').classList.remove('gone');
+  }
 }
 init();
 </script>
